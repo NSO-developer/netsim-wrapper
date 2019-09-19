@@ -1,0 +1,16 @@
+#!/usr/bin/env bash 
+
+if [ "$1" = "--help" ] || [ "$1" = "-h" ]; then
+    cat <<EOF
+Usage ncs-netsim-del  [--dir <NetsimDir>]
+                      device <DeviceNames>
+                      -v | --version
+                      -h | --help
+
+See manpage for ncs-netsim-del for more info. NetsimDir is optional
+and defaults to ./netsim, any netsim directory above in the path,
+or \$NETSIM_DIR if set.
+
+EOF
+fi
+    
