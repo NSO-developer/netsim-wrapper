@@ -16,7 +16,7 @@ setup(
 	description = "TBA"
 	long_description = long_description,
 	long_description_content_type = 'text/markdown',
-	url = 'https://github.com/network-tools/ncs-netsim-del.git',
+	url = 'https://github.com/kirankotari/ncs-netsim-del.git',
 	author = 'Kiran Kumar Kotari',
 	author_email = 'kirankotari@live.com',
 	classifiers = [
