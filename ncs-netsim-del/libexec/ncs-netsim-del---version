@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
   
-if [ "$1" = "--help" ] || [ "$1" = "-h" ]; then
+if [ "$1" = "--help" ]; then
     cat <<EOF
 Usage ncs-netsim-del  -v | --version
 
@@ -10,13 +10,12 @@ See manpage for ncs-netsim-del for more info.
 EOF
 fi
 
-if [ "$NCSNETDIRDEL" = "" ]; then
+if [ "$NCSNETSIMDEL" = "" ]; then
     version='1.0.0'
-    echo NCSNETDIRDEL variable is not set, recommended to set the variable.
+    echo NCSNETSIMDEL variable is not set, recommended to set the variable.
 else 
-    version=<$NCSNETDIRDEL/../../.version
+    version=`cat $NCSNETSIMDEL/../.version`
 fi
 
 echo ncs-netsim-del $version
-
 # done..!
