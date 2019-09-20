@@ -1,4 +1,5 @@
 import sys, logging, subprocess
+from collections import OrderedDict
 
 class NcsNetsimDel:
     def __init__(self, path):
@@ -21,13 +22,32 @@ class NcsNetsimDel:
         self.netsim_path = path
 
     def del_devices(self, argv):
-        data = self._read_netsiminfo()
-        self._update_netsiminfo(data)
+        netsim_config = self._read_netsiminfo()
+        netsim_config = self._to_dict(netsim_config)
+        self._update_netsiminfo(netsim_config, argv)
         self._del_devices(argv)
 
+    def _to_dict(self, config):
+        _netsim_config = OrderedDict()
+        for each_device in config:
+            device = {}
+            for each_line in each_device.split('\n'):
+                if len(each_line.split('[')) > 1:
+                    key = each_line.split('[')[0]
+                    value = each_line.split('=')[1]
+                    device[key] = value
+            if len(device):
+                _netsim_config[device['devices']] = device
+        return _netsim_config
+
     def _del_devices(self, devices):
-        # TODO: deleting devices from self.netsim_path
-        print('deleting devices from netsim_path')
+        for device in devices:
+            try:
+                subprocess.Popen('rm -rf {}/*/{}'.format(self.netsim_path, device), shell=True)
+                self.success(device)
+            except Exception:
+                self.error_device(device)
+        logging.info('Done..!')
 
     def _read_netsiminfo(self):
         try:
@@ -38,9 +58,25 @@ class NcsNetsimDel:
             self.file_not_found()
             exit(-1)
 
-    def _update_netsiminfo(self, data):
-        # TODO: updating netsiminfo
-        print('updating netsiminfo')
+    def _update_netsiminfo(self, config, device_lst):
+        for each_device in device_lst:
+            if each_device in config:
+                del config[each_device]
+            else:
+                self.error_device(each_device)
+        self._write_netsiminfo(config)
+
+    def _write_netsiminfo(self, config):
+        fp = open('{}/.netsiminfo'.format(self.netsim_path), 'w')
+        fp.write('\n')
+        index = 0
+        for device_name, device_dict in config.items():
+            fp.write('## device {}\n'.format(device_name))
+            for key, value in device_dict.items():
+                fp.write('{}[{}]={}\n'.format(key, index, value))
+            fp.write('#######\n\n')
+            index += 1
+        fp.close()
 
     def file_not_found(self):
         return logging.error("netsim configuration file not found at {}".format(self.netsim_path))
