@@ -2,11 +2,21 @@ import sys, logging, subprocess
 from collections import OrderedDict
 
 class NcsNetsimDel:
-    def __init__(self, path):
+    def __init__(self, path, log_level=logging.INFO, log_format=None):
         self.path = path
         self.netsim_path = './netsim'
         self.bash = '/bin/bash'
         self.libexec = '../libexec'
+        self.format = log_format
+        self.logger = self.set_logger_level(log_level)
+
+    def set_logger_level(self, log_level):
+        if self.format is None:
+            self.format = '[ %(levelname)s ] :: [ %(name)s ] :: %(message)s'
+        logging.basicConfig(stream=sys.stdout, level=log_level, format=self.format, datefmt=None)
+        logger = logging.getLogger('ncs-netsim-del')
+        logger.setLevel(log_level)
+        return logger
 
     def help(self):
         subprocess.run([self.bash, '{}/{}/ncs-netsim-del-help'.format(self.path, self.libexec)])
@@ -23,9 +33,19 @@ class NcsNetsimDel:
 
     def del_devices(self, argv):
         netsim_config = self._read_netsiminfo()
+        devicesxml = self._read_devicesxml()
         netsim_config = self._to_dict(netsim_config)
         self._update_netsiminfo(netsim_config, argv)
+        self._update_devicesxml(devicesxml, argv)
         self._del_devices(argv)
+
+    def _read_devicesxml(self):
+        # TODO: Need to read the device xml file
+        return ''
+
+    def _update_devicesxml(self, devicexml, argv):
+        # TODO: Need to update the device xml file
+        pass
 
     def _to_dict(self, config):
         _netsim_config = OrderedDict()
@@ -44,10 +64,12 @@ class NcsNetsimDel:
         for device in devices:
             try:
                 subprocess.Popen('rm -rf {}/*/{}'.format(self.netsim_path, device), shell=True)
+                # TODO: if the directory is empty then delete the directory
                 self.success(device)
             except Exception:
                 self.error_device(device)
-        logging.info('Done..!')
+                exit(-1)
+        self.logger.info('Done..!')
 
     def _read_netsiminfo(self):
         try:
@@ -59,11 +81,15 @@ class NcsNetsimDel:
             exit(-1)
 
     def _update_netsiminfo(self, config, device_lst):
+        exit_flag = 0
         for each_device in device_lst:
             if each_device in config:
                 del config[each_device]
             else:
+                exit_flag = 1
                 self.error_device(each_device)
+        if exit_flag:
+            exit(-1)
         self._write_netsiminfo(config)
 
     def _write_netsiminfo(self, config):
@@ -79,16 +105,16 @@ class NcsNetsimDel:
         fp.close()
 
     def file_not_found(self):
-        return logging.error("netsim configuration file not found at {}".format(self.netsim_path))
+        return self.logger.error("netsim configuration file not found at {}".format(self.netsim_path))
 
     def success(self, device):
-        return logging.info("Device {} deleted successfully".format(device))
+        return self.logger.info("Device {} deleted successfully".format(device))
 
     def error(self):
-        return logging.error("Arguments mismatch, please check ncs-netsim-del --help")
+        return self.logger.error("Arguments mismatch, please check ncs-netsim-del --help")
     
     def error_device(self, device):
-        return logging.error("Device {} details not found..!".format(device))
+        return self.logger.error("Device {} details not found..!".format(device))
 
 def main(*argv):
     obj = NcsNetsimDel(argv[0])
