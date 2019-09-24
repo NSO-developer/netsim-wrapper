@@ -27,7 +27,11 @@ name=ios1 netconf=12025 snmp=11025 ipc=5013 cli=10025 dir=/Users/nso/nso-run/net
 - **Deleting NCS Netsim devices**
 
 ```python
-TBA
+λ ncs-netsim-del device ios0 xr1
+[ INFO ] :: [ ncs-netsim-del ] :: Device ios0 deleted successfully
+[ INFO ] :: [ ncs-netsim-del ] :: Device xr1 deleted successfully
+[ INFO ] :: [ ncs-netsim-del ] :: Done..!
+λ 
 ```
 
 - **Hep ncs-netsim-del**
