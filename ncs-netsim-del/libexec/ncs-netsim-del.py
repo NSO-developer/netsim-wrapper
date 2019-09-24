@@ -127,9 +127,3 @@ def main(*argv):
 
 if __name__ == "__main__":
     main(*sys.argv[1:])
-
-
-# TODO: need to deleting the device folders
-# TODO: need to update the .netsiminfo file
-
-# TODO: need to add logging messages
