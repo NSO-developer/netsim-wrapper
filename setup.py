@@ -11,12 +11,12 @@ with open(path.join(here, '.version'), encoding='utf-8') as f:
 	version = f.read()
 
 setup(
-	name = 'ncs-netsim-del',
+	name = 'ncs-netsim2',
 	version = version,
 	description = "Introducing a new command to delete the ncs-netsim devices.  It was a hardened when the feature was missing, We were forced to delete the complete simulated network and recreate again with the rest of devices."
-	long_description = long_description,
+    long_description = long_description,
 	long_description_content_type = 'text/markdown',
-	url = 'https://github.com/kirankotari/ncs-netsim-del.git',
+	url = 'https://github.com/kirankotari/ncs-netsim2.git',
 	author = 'Kiran Kumar Kotari',
 	author_email = 'kirankotari@live.com',
 	classifiers = [
@@ -33,6 +33,6 @@ setup(
 		],
 	keywords = 'Netsim delete device',
 	packages = find_packages(exclude=['tests']),
-	package_dir = {'ncs-netsim-del': 'ncs-netsim-del'},
-	package_data = {'ncs-netsim-del': []},
+	package_dir = {'ncs-netsim2': 'ncs-netsim2'},
+	package_data = {'ncs-netsim2': []},
 )
