@@ -116,6 +116,22 @@ class NcsNetsimDel:
     def error_device(self, device):
         return self.logger.error("Device {} details not found..!".format(device))
 
+    def ncs_netsim(self, args):
+        result = subprocess.run(['ncs-netsim'] + [each for each in args], capture_output=True)
+        error = str(result.stderr.decode("utf-8"))
+        result = str(result.stdout.decode("utf-8"))
+
+        if '*** Unknown arg' in error:
+            self.error()
+            exit(-1)
+
+        elif '*** Need to either specify a netsim directory with --dir' in error:
+            self.logger.warning("Couldn't able to find netsim dir.")
+            print(error)
+            exit(-1)
+
+        print(result)
+
 def main(*argv):
     obj = NcsNetsimDel(argv[0])
     try:
@@ -135,18 +151,19 @@ def main(*argv):
         # ncs-netsim2 dir
         elif argv[1] == '--dir':
             obj.dir_path(argv[2])
-            if len(argv) > 4 and argv[3] == 'device':
+            if len(argv) > 4 and argv[3] == 'del-device':
                 obj.del_devices(argv[4:])
             else:
-                obj.error()
+                obj.ncs_netsim(argv[3:])
         
         # ncs-netsim2 device
-        elif argv[1] == 'device':
+        elif argv[1] == 'del-device':
             obj.del_devices(argv[2:])
-        
+
         # error
         else:
-            obj.error()
+            # TODO: pass the command to ncs-netsim
+            obj.ncs_netsim(argv[1:])
     except Exception:
         obj.error()
 
