@@ -1,0 +1,21 @@
+#!/usr/bin/env bash
+  
+if [ "$1" = "--help" ]; then
+    cat <<EOF
+Usage ncs-netsim-del  -v | --version
+
+Displays the version number of this ncs-netsim2 release
+See manpage for ncs-netsim2 for more info. 
+
+EOF
+fi
+
+if [ "$NCSNETSIM2" = "" ]; then
+    version='1.0.0'
+    echo NCSNETSIM2 variable is not set, recommended to set the variable.
+else 
+    version=`cat $NCSNETSIM2/../.version`
+fi
+
+echo ncs-netsim2 $version
+# done..!
