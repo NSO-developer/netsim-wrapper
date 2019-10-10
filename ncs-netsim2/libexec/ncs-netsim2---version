@@ -10,6 +10,8 @@ See manpage for ncs-netsim2 for more info.
 EOF
 fi
 
+# TODO: need to check why it's not picking NCSNETSIM2 from fish
+
 if [ "$NCSNETSIM2" = "" ]; then
     version='1.0.0'
     echo NCSNETSIM2 variable is not set, recommended to set the variable.
