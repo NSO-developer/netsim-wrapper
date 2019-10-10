@@ -14,18 +14,18 @@ class NcsNetsimDel:
         if self.format is None:
             self.format = '[ %(levelname)s ] :: [ %(name)s ] :: %(message)s'
         logging.basicConfig(stream=sys.stdout, level=log_level, format=self.format, datefmt=None)
-        logger = logging.getLogger('ncs-netsim-del')
+        logger = logging.getLogger('ncs-netsim2')
         logger.setLevel(log_level)
         return logger
 
     def help(self):
-        subprocess.run([self.bash, '{}/{}/ncs-netsim-del-help'.format(self.path, self.libexec)])
+        subprocess.run([self.bash, '{}/{}/ncs-netsim2-help'.format(self.path, self.libexec)])
 
     def version(self, arg=None):
         if arg is None:
-            subprocess.run([self.bash, '{}/{}/ncs-netsim-del---version'.format(self.path, self.libexec)])
+            subprocess.run([self.bash, '{}/{}/ncs-netsim2---version'.format(self.path, self.libexec)])
         else:
-            subprocess.run([self.bash, '{}/{}/ncs-netsim-del---version'.format(self.path, self.libexec),
+            subprocess.run([self.bash, '{}/{}/ncs-netsim2---version'.format(self.path, self.libexec),
              '--help'])
 
     def dir_path(self, path):
@@ -111,7 +111,7 @@ class NcsNetsimDel:
         return self.logger.info("Device {} deleted successfully".format(device))
 
     def error(self):
-        return self.logger.error("Arguments mismatch, please check ncs-netsim-del --help")
+        return self.logger.error("Arguments mismatch, please check ncs-netsim2 --help")
     
     def error_device(self, device):
         return self.logger.error("Device {} details not found..!".format(device))
@@ -119,20 +119,20 @@ class NcsNetsimDel:
 def main(*argv):
     obj = NcsNetsimDel(argv[0])
     try:
-        # ncs-netsim-del help
+        # ncs-netsim2 help
         if len(argv) == 1:
             obj.help()
         elif argv[1] == '-h' or argv[1] == '--help':
             obj.help()
 
-        # ncs-netsim-del version
+        # ncs-netsim2 version
         elif argv[1] == '-v' or argv[1] == '--version':
             if len(argv) >= 3 and ( argv[2] == '-h' or argv[2] == '--help' ):
                 obj.version(arg='--help')
             else:
                 obj.version()
         
-        # ncs-netsim-del dir
+        # ncs-netsim2 dir
         elif argv[1] == '--dir':
             obj.dir_path(argv[2])
             if len(argv) > 4 and argv[3] == 'device':
@@ -140,7 +140,7 @@ def main(*argv):
             else:
                 obj.error()
         
-        # ncs-netsim-del device
+        # ncs-netsim2 device
         elif argv[1] == 'device':
             obj.del_devices(argv[2:])
         
