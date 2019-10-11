@@ -6,7 +6,8 @@ Usage ncs-netsim2  [--dir <NetsimDir>]
                   create-device <NcsPackage> <DeviceName> |
                   add-to-network <NcsPackage> <NumDevices> <Prefix> |
                   add-device <NcsPackage> <DeviceName> |
-                  del-device <DeviceNames>           |
+                  delete-device <DeviceNames>          |
+                  delete-add-device <DeviceNames>      |
                   delete-network                     |
                   [-a | --async]  start [devname]    |
                   [-a | --async ] stop [devname]     |
