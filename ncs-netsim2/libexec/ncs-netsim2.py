@@ -1,4 +1,4 @@
-import sys, logging, subprocess
+import sys, logging, subprocess, random
 from collections import OrderedDict
 
 class NcsNetsimDel:
@@ -107,16 +107,66 @@ class NcsNetsimDel:
     def file_not_found(self):
         return self.logger.error("netsim configuration file not found at {}".format(self.netsim_path))
 
-    def success(self, device):
-        return self.logger.info("Device {} deleted successfully".format(device))
+    def success(self, device, operation='deleted'):
+        return self.logger.info("Device {} {} successfully".format(device, operation))
 
     def error(self):
         return self.logger.error("Arguments mismatch, please check ncs-netsim2 --help")
     
     def error_device(self, device):
         return self.logger.error("Device {} details not found..!".format(device))
+    
+    def _is_network_empty(self):
+        data = self._read_netsiminfo()
+        if len(data) >= 1:
+            if '##' not in data[0]:
+                return True
+        return False
+
+    def _is_cmd_in_args(self, cmd, args):
+        for each in args:
+            if cmd in each:
+                return True
+        return False
+
+    def _is_add_to_network_in_args(self, args):
+        return self._is_cmd_in_args('add-to-network', args)
+    
+    def _is_delete_network_in_args(self, args):
+        return self._is_cmd_in_args('delete-device', args)
+    
+
+    def _add_devices_to_empty_network(self, args):
+        tmp = '_tmp{}'.format(random.randrange(12022, 13022))
+        subprocess.run(['mv', self.netsim_path, self.netsim_path + tmp])
+        subprocess.run(['ncs-netsim', 'create-network'] + [each for each in args])
+        subprocess.run(['cp', '-Rn', self.netsim_path + tmp, self.netsim_path])
+        subprocess.run(['rm', '-rf', self.netsim_path + tmp])
+
+    def _add_devices_to_network(self, args):
+        # TODO: need to manipulate the netsiminfo on adding each config...
+        print('TDA: adding devices to the network..')
+        pass
 
     def ncs_netsim(self, args):
+        # TODO: Check on adding new devices to the existing network
+        # TODO: On deletion keep a track of them
+        # TODO: Delete and add
+        # TODO: Need to move delete device call from here
+
+        
+        if self._is_add_to_network_in_args(args) and self._is_network_empty():
+            self._add_devices_to_empty_network(args[1:])
+            exit(-1)
+
+        if self._is_add_to_network_in_args(args):
+            self._add_devices_to_network(args)
+            exit(-1)
+        
+        if self._is_delete_network_in_args(args):
+            self.del_devices(args[1:])
+            exit(-1)
+        
         result = subprocess.run(['ncs-netsim'] + [each for each in args], capture_output=True)
         error = str(result.stderr.decode("utf-8"))
         result = str(result.stdout.decode("utf-8"))
@@ -127,6 +177,11 @@ class NcsNetsimDel:
 
         elif '*** Need to either specify a netsim directory with --dir' in error:
             self.logger.warning("Couldn't able to find netsim dir.")
+            print(error)
+            exit(-1)
+        
+        elif error:
+            self.logger.error('')
             print(error)
             exit(-1)
 
@@ -151,18 +206,10 @@ def main(*argv):
         # ncs-netsim2 dir
         elif argv[1] == '--dir':
             obj.dir_path(argv[2])
-            if len(argv) > 4 and argv[3] == 'del-device':
-                obj.del_devices(argv[4:])
-            else:
-                obj.ncs_netsim(argv[3:])
+            obj.ncs_netsim(argv[3:])
         
-        # ncs-netsim2 device
-        elif argv[1] == 'del-device':
-            obj.del_devices(argv[2:])
-
-        # error
+        # ncs-netsim
         else:
-            # TODO: pass the command to ncs-netsim
             obj.ncs_netsim(argv[1:])
     except Exception:
         obj.error()
