@@ -13,7 +13,7 @@ with open(path.join(here, '.version'), encoding='utf-8') as f:
 setup(
 	name = 'ncs-netsim2',
 	version = version,
-	description = "Introducing a new command to delete the ncs-netsim devices.  It was a hardened when the feature was missing, We were forced to delete the complete simulated network and recreate again with the rest of devices."
+	description = "Introducing a new command to delete the ncs-netsim devices.  It was a hardened when the feature was missing, We were forced to delete the complete simulated network and recreate again with the rest of devices.",
     long_description = long_description,
 	long_description_content_type = 'text/markdown',
 	url = 'https://github.com/kirankotari/ncs-netsim2.git',

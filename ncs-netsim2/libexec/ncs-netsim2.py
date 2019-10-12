@@ -1,4 +1,4 @@
-import sys, logging, subprocess, random
+import os, sys, logging, subprocess, random
 from collections import OrderedDict
 
 class NcsNetsimDel:
@@ -33,19 +33,19 @@ class NcsNetsimDel:
 
     def del_devices(self, argv):
         netsim_config = self._read_netsiminfo()
-        devicesxml = self._read_devicesxml()
-        netsim_config = self._to_dict(netsim_config)
-        self._update_netsiminfo(netsim_config, argv)
-        self._update_devicesxml(devicesxml, argv)
+        netsim_config = self._to_dict(netsim_raw_config)
+        netsim_config_mapper = self._to_device_map(netsim_config)
+        self._update_netsiminfo(netsim_config, netsim_config_mapper, argv)
         self._del_devices(argv)
-
-    def _read_devicesxml(self):
-        # TODO: Need to read the device xml file
-        return ''
-
-    def _update_devicesxml(self, devicexml, argv):
-        # TODO: Need to update the device xml file
-        pass
+    
+    def _to_device_map(self, config):
+        _netsim_config = OrderedDict()
+        for each_device in config:
+            device = each_device.split('=')
+            if len(device) > 1:
+                device = device[1].split('\n')[0]
+                _netsim_config[device] = each_device
+        return _netsim_config
 
     def _to_dict(self, config):
         _netsim_config = OrderedDict()
@@ -64,7 +64,6 @@ class NcsNetsimDel:
         for device in devices:
             try:
                 subprocess.Popen('rm -rf {}/*/{}'.format(self.netsim_path, device), shell=True)
-                # TODO: if the directory is empty then delete the directory
                 self.success(device)
             except Exception:
                 self.error_device(device)
@@ -80,14 +79,19 @@ class NcsNetsimDel:
             self.file_not_found()
             exit(-1)
 
-    def _update_netsiminfo(self, config, device_lst):
+    def _update_netsiminfo(self, config, config_mapper, device_lst):
         exit_flag = 0
+        fp = open('{}/.netsimdelete'.format(self.netsim_path), 'a+')
         for each_device in device_lst:
             if each_device in config:
+                fp.write(config_mapper[each_device])
                 del config[each_device]
             else:
                 exit_flag = 1
                 self.error_device(each_device)
+        
+        fp.close()
+
         if exit_flag:
             exit(-1)
         self._write_netsiminfo(config)
@@ -146,14 +150,14 @@ class NcsNetsimDel:
     def _add_devices_to_network(self, args):
         # TODO: need to manipulate the netsiminfo on adding each config...
         print('TDA: adding devices to the network..')
+        for each in range(1, args[3]+1):
+            subprocess.run(['ncs-netsim', 'add-to-network', args[0], args[1], each])
         pass
 
     def ncs_netsim(self, args):
         # TODO: Check on adding new devices to the existing network
-        # TODO: On deletion keep a track of them
+        # TODO: On deletion keep a track of them - Inprogress..
         # TODO: Delete and add
-        # TODO: Need to move delete device call from here
-
         
         if self._is_add_to_network_in_args(args) and self._is_network_empty():
             self._add_devices_to_empty_network(args[1:])
