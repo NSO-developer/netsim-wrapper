@@ -33,9 +33,9 @@ class NcsNetsimDel:
 
     def del_devices(self, argv):
         netsim_config = self._read_netsiminfo()
-        netsim_config = self._to_dict(netsim_raw_config)
+        # netsim_config = self._to_dict(netsim_raw_config)
         netsim_config_mapper = self._to_device_map(netsim_config)
-        self._update_netsiminfo(netsim_config, netsim_config_mapper, argv)
+        self._update_netsiminfo(netsim_config_mapper, argv)
         self._del_devices(argv)
     
     def _to_device_map(self, config):
@@ -47,18 +47,14 @@ class NcsNetsimDel:
                 _netsim_config[device] = each_device
         return _netsim_config
 
-    def _to_dict(self, config):
-        _netsim_config = OrderedDict()
-        for each_device in config:
-            device = {}
-            for each_line in each_device.split('\n'):
-                if len(each_line.split('[')) > 1:
-                    key = each_line.split('[')[0]
-                    value = each_line.split('=')[1]
-                    device[key] = value
-            if len(device):
-                _netsim_config[device['devices']] = device
-        return _netsim_config
+    def _to_keypair(self, device_config):
+        device = {}
+        for each_line in device_config.split('\n'):
+            if len(each_line.split('[')) > 1:
+                key = each_line.split('[')[0]
+                value = each_line.split('=')[1]
+                device[key] = value
+        return device
 
     def _del_devices(self, devices):
         for device in devices:
@@ -79,22 +75,25 @@ class NcsNetsimDel:
             self.file_not_found()
             exit(-1)
 
-    def _update_netsiminfo(self, config, config_mapper, device_lst):
+    def _update_netsiminfo(self, config_mapper, device_lst):
         exit_flag = 0
         fp = open('{}/.netsimdelete'.format(self.netsim_path), 'a+')
         for each_device in device_lst:
-            if each_device in config:
+            if each_device in config_mapper:
                 fp.write(config_mapper[each_device])
-                del config[each_device]
+                del config_mapper[each_device]
             else:
                 exit_flag = 1
                 self.error_device(each_device)
-        
         fp.close()
 
         if exit_flag:
             exit(-1)
-        self._write_netsiminfo(config)
+        
+        for device, data in config_mapper.items():
+            config_mapper[device] = self._to_keypair(data)
+        
+        self._write_netsiminfo(config_mapper)
 
     def _write_netsiminfo(self, config):
         fp = open('{}/.netsiminfo'.format(self.netsim_path), 'w')
@@ -146,17 +145,18 @@ class NcsNetsimDel:
         subprocess.run(['ncs-netsim', 'create-network'] + [each for each in args])
         subprocess.run(['cp', '-Rn', self.netsim_path + tmp, self.netsim_path])
         subprocess.run(['rm', '-rf', self.netsim_path + tmp])
+        subprocess.run(['rm', '-rf', '{}/.netsimdelete'.format(self.netsim_path)])
 
     def _add_devices_to_network(self, args):
-        # TODO: need to manipulate the netsiminfo on adding each config...
         print('TDA: adding devices to the network..')
         for each in range(1, args[3]+1):
+            # TODO: need to manipulate the netsiminfo on adding each config...
+            # TODO: need to manipulate the netsimdelete
             subprocess.run(['ncs-netsim', 'add-to-network', args[0], args[1], each])
         pass
 
     def ncs_netsim(self, args):
         # TODO: Check on adding new devices to the existing network
-        # TODO: On deletion keep a track of them - Inprogress..
         # TODO: Delete and add
         
         if self._is_add_to_network_in_args(args) and self._is_network_empty():
