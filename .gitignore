@@ -1,3 +1,7 @@
+# Custom
+netsim/
+backup*
+
 # OS Files
 .DS_Store
 *.DS_Store

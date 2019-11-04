@@ -36,3 +36,4 @@ setup(
 	package_dir = {'ncs-netsim2': 'ncs-netsim2'},
 	package_data = {'ncs-netsim2': []},
 )
+
