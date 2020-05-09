@@ -1,55 +1,39 @@
-# NCS Netsim2 is a wrapper of NCS Netsim with new features added to it
+# Ncs-Netsim2
+
+ncs-netsim2 is a powerful simulator tool in python. It's a wrapper of ncs-netsim tool with added features
 
 - [Introduction](#introduction)
 - [Pre-requisites](#pre-requisites)
 - [Installation](#installation)
+- [Help](#help)
 - [FAQ](#faq)
 - [Bug Tracking and Support](#bug-tracking-and-support)
 - [License and Copyright](#license-and-copyrights)
 - [Author and Thanks](#author-and-thanks)
 
-## Introduction - TBU
+## Introduction
 
-Introducing a new command to delete the ncs-netsim devices.  It was a hardened when the feature was missing, We were forced to delete the complete simulated network and recreate again with the rest of devices.
+ncs-netsim, It's an powerful tool to build an simulated network envrinoments for Network Service Orchestrator (NSO) it's also called as NCS - NSO. In these network topologies we can test the network configuations based on the need as per the usecase.
 
-- **List of NCS Netsim devices**
+ncs-netsim2, We added very important features like deleting a device from the topology, etc. Due to lack of this feature we were used to keep un-wanted devices in the network envrinoments which consumes computer/vm resources and a lot of time to manage manuall to stop the un-wanted devices or re-create the complete topology which is time taking.
 
-```python
-λ ncs-netsim list
-ncs-netsim list for  /Users/nso/nso-run/netsim
+### **How to delete a device(s) from network topology?**
 
-name=xr0 netconf=12022 snmp=11022 ipc=5010 cli=10022 dir=/Users/nso/nso-run/netsim/xr/xr0 
-name=xr1 netconf=12023 snmp=11023 ipc=5011 cli=10023 dir=/Users/nso/nso-run/netsim/xr/xr1 
-name=ios0 netconf=12024 snmp=11024 ipc=5012 cli=10024 dir=/Users/nso/nso-run/netsim/ios/ios0 
-name=ios1 netconf=12025 snmp=11025 ipc=5013 cli=10025 dir=/Users/nso/nso-run/netsim/ios/ios1 
-```
+```bash
+kkotari# ncs-netsim2 list
+TODO: need to add
 
-- **Deleting NCS Netsim devices**
+kkotari# ncs-netsim2 (delete-device <deviceName>)
+TODO: need to add
 
-```python
-λ ncs-netsim2 device ios0 xr1
-[ INFO ] :: [ ncs-netsim2 ] :: Device ios0 deleted successfully
-[ INFO ] :: [ ncs-netsim2 ] :: Device xr1 deleted successfully
-[ INFO ] :: [ ncs-netsim2 ] :: Done..!
-λ 
-```
-
-- **Hep ncs-netsim2**
-
-```bash 
-Usage ncs-netsim2  [--dir <NetsimDir>]
-                      device <DeviceNames>
-                      -v | --version
-                      -h | --help
-
-See manpage for ncs-netsim2 for more info. NetsimDir is optional
-and defaults to ./netsim, any netsim directory above in the path,
-or $NETSIM_DIR if set.
+kkotari# ncs-netsim2 list
+TODO: need to add
 ```
 
 ## Pre-requisites
 
-ncs-netsim2 supports both trains of **python** `2.7+ and 3.1+`, the OS should not matter.
+- ncs-netsim command must be reconginsed by the terminal.
+- ncs-netsim2 supports both trains of **python** `2.7+ and 3.1+`, the OS should not matter.
 
 ## Installation and Downloads
 
@@ -65,13 +49,30 @@ If you're Interested in the source, you can always pull from the github repo:
 
 - From github `git clone https://github.com/kirankotari/ncs-netsim2.git`
 
+## Help
+
+```bash
+kkotari# ncs-netsim2 --help
+Usage ncs-netsim2  [--dir <NetsimDir>]
+                      device <DeviceNames>
+                      -v | --version
+                      -h | --help
+
+See manpage for ncs-netsim2 for more info. NetsimDir is optional
+and defaults to ./netsim, any netsim directory above in the path,
+or $NETSIM_DIR if set.
+```
+
 ## FAQ
 
-- **Question:** I want to use ncs-netsim2 with Python3, is that safe?  
- **Answer:** As long as you're using python 3.3 or higher, it's safe. I tested every release against python 3.1+, however python 3.1, 3.2 and 3.3 not running in continuous integration test.  
+- **Question:** Do I need to install ncs-netsim too?  
+ **Answer:** Not really, ncs-netsim tool comes along with NSO. If you are working NSO it's won't be a problem.  
 
-- **Question:** I want to use ncs-netsim2 with Python2, is that safe?  
- **Answer:** As long as you're using python 2.7 or higher, it's safe. I tested against python 2.7.
+- **Question:** Is python mandatory for ncs-netsim2?  
+ **Answer:** Yes, we had wrote the complete logic in python, and wanted to make NSO version independent tool.  
+
+- **Question:** Is ncs-netsim2 backword compatable on other commands?  
+ **Answer:** We recommend to use ncs-netsim2 commands instead of ncs-netsim. However couple of commands are still backward compatable ie. `ncs-netsim list`, etc.  
 
 ## Bug Tracker and Support
 
