@@ -3,6 +3,8 @@ import re
 import subprocess
 import logging
 
+from operator import methodcaller
+
 
 class Netsim2:
     name = 'ncs-netsim2'
@@ -16,6 +18,8 @@ class Netsim2:
     _ncs_netsim2_commands = []
     __stdout = subprocess.PIPE
     __stderr = subprocess.PIPE
+    __netsiminfo = '.netsiminfo'
+    __netsimdelete = '.netsimdelete'
 
     def __new__(cls, log_level=logging.INFO, log_format=None, *args, **kwargs):
         if cls._instance is None:
@@ -102,22 +106,64 @@ class Netsim2:
         return _commands
 
     def __get_ncs_netsim2__commands(self, cmd_lst):
-        print("TODO: need to add code..")
+        index = 0
+        if cmd_lst[0] == '--dir':
+            index = 2
+        f = methodcaller(f"{cmd_lst[index].replace('-','_')}", cmd_lst)
+        f(Netsim2)
         self.__exit
+
+    @staticmethod
+    def create_network(cmd_lst):
+        print('I am in create network..!')
+        pass
+
+    @staticmethod
+    def create_device(cmd_lst):
+        print("I am in create device..!")
+        pass
+
+    @staticmethod
+    def add_to_network(cmd_lst):
+        print("I am in add to network..!")
+        pass
+
+    @staticmethod
+    def delete_from_network(cmd_lst):
+        print("I am in delete from network")
+        pass
+
+    @staticmethod
+    def add_device(cmd_lst):
+        print("I am in add device")
+
+    @staticmethod
+    def delete_device(cmd_lst):
+        print("I am in delete device")
+
+    @staticmethod
+    def delete_network(cmd_lst):
+        print("I am in delete network")
 
     def get_version(self):
         print("TODO: need to add code..")
         self.__exit
 
-    def run_command(self, cmd_lst):
+    def run_command(self, cmd_lst, netsim_dir=None):
+        if cmd_lst[0] == '--dir':
+            self.run_command(cmd_lst[2:], netsim_dir=cmd_lst[1])
         if cmd_lst[0] in self._version:
             self.get_version
         if cmd_lst[0] in self._help:
             self.help
         if cmd_lst[0] in self._ncs_netsim2_commands:
-            self.__get_ncs_netsim2__commands(cmd_lst)
+            if not netsim_dir:
+                self.__get_ncs_netsim2__commands(cmd_lst)
+            self.__get_ncs_netsim2__commands(['--dir', netsim_dir] + cmd_lst)
         else:
-            self.__get_ncs_netsim__commands(cmd_lst)
+            if not netsim_dir:
+                self.__get_ncs_netsim__commands(cmd_lst)
+            self.__get_ncs_netsim__commands(['--dir', netsim_dir] + cmd_lst)
 
     @property
     def __options(self):
@@ -126,7 +172,7 @@ class Netsim2:
         self._help = ['-h', '--help']
         self._version = ['-v', '--version']
         self._ncs_netsim2_commands = ['create-network', 'create-device', 'add-to-network', 'add-device',
-                                      'delete-device', 'delete-add-device', 'delete-network']
+                                      'delete-from-network', 'delete-device', 'delete-network']
         self._ncs_netsim_commands = self.__fetch_ncs_netsim__commands
         self.options = self._help + self._version + \
             self._ncs_netsim2_commands + self._ncs_netsim_commands
@@ -137,9 +183,9 @@ class Netsim2:
             print(self._ncs_netsim2_help)
             self.__exit
 
-        __match_replace = [['add-device <NcsPackage> <DeviceName> |', '''add-device <NcsPackage> <DeviceName> |
-                  delete-device <DeviceNames>          |
-                  delete-add-device <DeviceNames>      |'''],
+        __match_replace = [['add-device <NcsPackage> <DeviceName> |', '''delete-from-network <DeviceNames>          |
+                  add-device <NcsPackage> <DeviceName> |
+                  delete-device <DeviceNames>      |'''],
                            ['get-port devname [ipc | netconf | cli | snmp]', '''get-port devname [ipc | netconf | cli | snmp] |
                   -v | --version            |
                   -h | --help'''],
