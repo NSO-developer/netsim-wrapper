@@ -34,7 +34,6 @@ class Netsim2:
         # pre-req
         self.__get_ncs_netsim__help
         self.__options
-        pass
 
     def __set_logger_level(self, log_level):
         if self.__format is None:
@@ -109,41 +108,38 @@ class Netsim2:
         index = 0
         if cmd_lst[0] == '--dir':
             index = 2
-        f = methodcaller(f"{cmd_lst[index].replace('-','_')}", cmd_lst)
+        f = methodcaller(f"{cmd_lst[index].replace('-','_')}", self, cmd_lst)
         f(Netsim2)
         self.__exit
 
-    @staticmethod
-    def create_network(cmd_lst):
+    def create_network(self, cmd_lst):
         print('I am in create network..!')
+        self.logger.info('I am in create network..!')
         pass
 
-    @staticmethod
-    def create_device(cmd_lst):
+    def create_device(self, cmd_lst):
         print("I am in create device..!")
         pass
 
-    @staticmethod
-    def add_to_network(cmd_lst):
+    def add_to_network(self, cmd_lst):
         print("I am in add to network..!")
         pass
 
-    @staticmethod
-    def delete_from_network(cmd_lst):
+    def delete_from_network(self, cmd_lst):
         print("I am in delete from network")
         pass
 
-    @staticmethod
-    def add_device(cmd_lst):
+    def add_device(self, cmd_lst):
         print("I am in add device")
+        pass
 
-    @staticmethod
-    def delete_device(cmd_lst):
+    def delete_device(self, cmd_lst):
         print("I am in delete device")
+        pass
 
-    @staticmethod
-    def delete_network(cmd_lst):
+    def delete_network(self, cmd_lst):
         print("I am in delete network")
+        pass
 
     def get_version(self):
         print("TODO: need to add code..")
@@ -171,8 +167,8 @@ class Netsim2:
             return
         self._help = ['-h', '--help']
         self._version = ['-v', '--version']
-        self._ncs_netsim2_commands = ['create-network', 'create-device', 'add-to-network', 'add-device',
-                                      'delete-from-network', 'delete-device', 'delete-network']
+        self._ncs_netsim2_commands = ['create-network', 'create-device', 'add-to-network',
+                                      'add-device', 'delete-from-network', 'delete-device', 'delete-network']
         self._ncs_netsim_commands = self.__fetch_ncs_netsim__commands
         self.options = self._help + self._version + \
             self._ncs_netsim2_commands + self._ncs_netsim_commands

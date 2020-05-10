@@ -26,7 +26,7 @@ setup(
     author_email = 'kirankotari@live.com',
     entry_points={
         'console_scripts': [
-            'ncs-netsim2 = ncs-netsim2.netsim2:run' # TODO: need to updated the command
+            'ncs-netsim2 = ncs-netsim2.netsim2:run'
         ],
     },
     install_requires=reqs,
