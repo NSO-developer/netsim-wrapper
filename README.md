@@ -20,14 +20,30 @@ ncs-netsim2, We added very important features like deleting a device from the to
 ### **How to delete a device(s) from network topology?**
 
 ```bash
-kkotari# ncs-netsim2 list
-TODO: need to add
+⋊> ~/k/i/ncs-netsim2 on master ◦ ncs-netsim2 list
+ncs-netsim list for  /Users/kkotari/idea/ncs-netsim2/netsim
 
-kkotari# ncs-netsim2 (delete-device <deviceName>)
-TODO: need to add
+name=xr0 netconf=12022 snmp=11022 ipc=5010 cli=10022 dir=/Users/kkotari/idea/ncs-netsim2/netsim/xr/xr0
+name=xr1 netconf=12023 snmp=11023 ipc=5011 cli=10023 dir=/Users/kkotari/idea/ncs-netsim2/netsim/xr/xr1
+name=xr2 netconf=12024 snmp=11024 ipc=5012 cli=10024 dir=/Users/kkotari/idea/ncs-netsim2/netsim/xr/xr2
+name=xr3 netconf=12025 snmp=11025 ipc=5013 cli=10025 dir=/Users/kkotari/idea/ncs-netsim2/netsim/xr/xr3
+⋊> ~/k/i/ncs-netsim2 on master ◦
+```
 
-kkotari# ncs-netsim2 list
-TODO: need to add
+```bash
+⋊> ~/k/i/ncs-netsim2 on master ◦ ncs-netsim2 delete-devices xr1 xr3
+[ INFO ] :: [ ncs-netsim ] :: deleting device: xr1
+[ INFO ] :: [ ncs-netsim ] :: deleting device: xr3
+⋊> ~/k/i/ncs-netsim2 on master ◦
+```
+
+```bash
+⋊> ~/k/i/ncs-netsim2 on master ◦  ncs-netsim2 list
+ncs-netsim list for  /Users/kkotari/idea/ncs-netsim2/netsim
+
+name=xr0 netconf=12022 snmp=11022 ipc=5010 cli=10022 dir=/Users/kkotari/idea/ncs-netsim2/netsim/xr/xr0
+name=xr2 netconf=12024 snmp=11024 ipc=5012 cli=10024 dir=/Users/kkotari/idea/ncs-netsim2/netsim/xr/xr2
+⋊> ~/k/i/ncs-netsim2 on master ◦
 ```
 
 ## Pre-requisites

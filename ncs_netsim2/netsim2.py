@@ -167,7 +167,7 @@ class Netsim:
 class Netsim2:
     name = 'ncs-netsim2'
     options = []
-    version = '2.0.0'
+    version = '2.0.1'
 
     _instance = None
     _ncs_netsim2_help = None
