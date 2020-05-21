@@ -99,16 +99,16 @@ class Netsim:
                 self._netsim_devices_created_by[dev_name] = ['add-to-network', each[-2]]
 
     def _run_command(self, command):
-        self.logger.debug(f"command `{' '.join(command)}` running on ncs-netsim")
+        self.logger.debug("command `{}` running on ncs-netsim".format(' '.join(command)))
         p = subprocess.Popen(command, stdout=self.__stdout,
                              stderr=self.__stderr)
         out, err = p.communicate()
         out, err = out.decode('utf-8'), err.decode('utf-8')
         if err == '' or 'env.sh' in err:
-            self.logger.debug(f"`{' '.join(command)}` ran successfully")
+            self.logger.debug("`{}` ran successfully".format(' '.join(command)))
             return out
-        self.logger.error(f"an error occured while running command `{' '.join(command)}`")
-        self.logger.error(f'message: {err}')
+        self.logger.error("an error occured while running command `{}`".format(' '.join(command)))
+        self.logger.error('message: {}'.format(err))
         if 'command not found' in err or 'Unknown command' in err:
             raise ValueError("command not found.")
         raise ValueError("try ncs-netsim2 --help")
@@ -167,7 +167,7 @@ class Netsim:
 class Netsim2:
     name = 'ncs-netsim2'
     options = []
-    version = '2.0.3'
+    version = '2.0.4'
 
     _instance = None
     _ncs_netsim2_help = None
@@ -224,7 +224,7 @@ class Netsim2:
     @property
     def get_version(self):
         # need to print
-        print(f'ncs-netsim2 version {self.version}')
+        print('ncs-netsim2 version {}'.format(self.version))
         self.__exit
 
     def _create_network(self, cmd_lst):
@@ -254,7 +254,7 @@ class Netsim2:
 
         for each in cmd_lst[3:]:
             if each not in __netsim_device_mapper:
-                self.logger.error(f"device {each} not exist")
+                self.logger.error("device {} not exist".format(each))
                 self.__exit
             __netsim2_device_mapper[each] = __netsim_device_mapper[each]
             self.__remove_device_from_netsim(self.__netsim_path, each, __netsim_device_mapper[each])
@@ -268,8 +268,8 @@ class Netsim2:
         self.__netsim.run_ncs_netsim__command(cmd_lst, print_output=False)
 
     def __run_ncs_netsim2__command(self, cmd_lst):
-        self.__netsim_path = f'{cmd_lst[1]}/{self.__netsimdelete}'
-        f = methodcaller(f"_{cmd_lst[2].replace('-','_')}", self, cmd_lst)
+        self.__netsim_path = '{}/{}'.format(cmd_lst[1], self.__netsimdelete)
+        f = methodcaller("_{}".format(cmd_lst[2].replace('-','_')), self, cmd_lst)
         try:
             f(Netsim2)
         except ValueError as e:
@@ -288,13 +288,13 @@ class Netsim2:
     def __remove_device_from_netsim(self, path, device, device_mapper):
         path = os.path.abspath(path.replace(self.__netsim_path.split('/')[-1], ''))
         if device_mapper['created_by'] == 'add-device':
-            cmd_lst = ['rm', '-rf', f"{path}/{device_mapper['parent']}"]
+            cmd_lst = ['rm', '-rf', "{}/{}".format(path, device_mapper['parent'])]
         elif len(list(filter(os.path.isdir, os.listdir(path)))) == 1:
-            cmd_lst = ['rm', '-rf', f"{path}/{device_mapper['parent']}"]
+            cmd_lst = ['rm', '-rf', "{}/{}".format(path, device_mapper['parent'])]
         else:
-            cmd_lst = ['rm', '-rf', f"{path}/{device_mapper['parent']}/{device}"]
+            cmd_lst = ['rm', '-rf', "{}/{}/{}".format(path, device_mapper['parent'], device)]
         self.__run_os_command(cmd_lst, print_output=False)
-        self.logger.info(f'deleting device: {device}')
+        self.logger.info('deleting device: {}'.format(device))
 
     def __run_os_command(self, cmd_lst, print_output=True):
         try:
@@ -323,11 +323,11 @@ class Netsim2:
         if command == 'add-to-network':
             for each in __full_prefix:
                 if each.startswith(current_prefix) and each[len(current_prefix):].isdigit():
-                    raise ValueError(f"the prefix can't be part of existing/deleted devices via {created_by} command")
+                    raise ValueError("the prefix can't be part of existing/deleted devices via {} command".format(created_by))
         if command == 'add-device':
             for each in __full_prefix:
                 if current_prefix.startswith(each) and current_prefix[len(each):].isdigit():
-                    raise ValueError(f"the prefix can't be part of existing/deleted devices via {created_by} command")
+                    raise ValueError("the prefix can't be part of existing/deleted devices via {} command".format(created_by))
         return True
 
     def __refactor_netsiminfo(self, path):
@@ -388,7 +388,7 @@ class Netsim2:
     def __netsim2_restore_devices(self, path, cmd_lst, __netsim2_device_mapper_temp):
         __total_devices = int(cmd_lst[-2])
         if __total_devices <= 0:
-            self.logger.error(f'no. of devices need to be > 0')
+            self.logger.error('no. of devices need to be > 0')
             self.__exit
 
         for k,v in __netsim2_device_mapper_temp.items():
