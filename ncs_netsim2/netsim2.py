@@ -167,7 +167,7 @@ class Netsim:
 class Netsim2:
     name = 'ncs-netsim2'
     options = []
-    version = '2.0.2'
+    version = '2.0.3'
 
     _instance = None
     _ncs_netsim2_help = None
@@ -221,6 +221,7 @@ class Netsim2:
             self._ncs_netsim2_help = self._ncs_netsim2_help.replace(each[0], each[1])
         self.help
 
+    @property
     def get_version(self):
         # need to print
         print(f'ncs-netsim2 version {self.version}')
@@ -420,7 +421,7 @@ class Netsim2:
             self.get_version
         if cmd_lst[0] in self._help:
             self.help
-        
+
         if not netsim_dir:
             netsim_dir = self.__netsim.netsim_dir
         
