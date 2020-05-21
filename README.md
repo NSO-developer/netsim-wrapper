@@ -68,11 +68,31 @@ If you're Interested in the source, you can always pull from the github repo:
 ## Help
 
 ```bash
-kkotari# ncs-netsim2 --help
+⋊> ~/k/i/ncs-netsim2 on master ◦ ncs-netsim2 --help
 Usage ncs-netsim2  [--dir <NetsimDir>]
-                      device <DeviceNames>
-                      -v | --version
-                      -h | --help
+                  create-network <NcsPackage> <NumDevices> <Prefix> |
+                  create-device <NcsPackage> <DeviceName>           |
+                  add-to-network <NcsPackage> <NumDevices> <Prefix> |
+                  add-device <NcsPackage> <DeviceName>  |
+                  delete-devices <DeviceNames>           |
+                  delete-network                     |
+                  [-a | --async]  start [devname]    |
+                  [-a | --async ] stop [devname]     |
+                  [-a | --async ] reset [devname]    |
+                  [-a | --async ] restart [devname]  |
+                  list                      |
+                  is-alive [devname]        |
+                  status [devname]          |
+                  whichdir                  |
+                  ncs-xml-init [devname]    |
+                  ncs-xml-init-remote <RemoteNodeName> [devname] |
+                  [--force-generic]                  |
+                  packages                  |
+                  netconf-console devname [XpathFilter] |
+                  [-w | --window] [cli | cli-c | cli-i] devname |
+                  get-port devname [ipc | netconf | cli | snmp] |
+                  -v | --version            |
+                  -h | --help
 
 See manpage for ncs-netsim2 for more info. NetsimDir is optional
 and defaults to ./netsim, any netsim directory above in the path,
