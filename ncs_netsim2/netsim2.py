@@ -167,7 +167,7 @@ class Netsim:
 class Netsim2:
     name = 'ncs-netsim2'
     options = []
-    version = '2.0.4'
+    version = '2.0.5'
 
     _instance = None
     _ncs_netsim2_help = None
@@ -199,7 +199,7 @@ class Netsim2:
         self._help = ['-h', '--help']
         self._version = ['-v', '--version']
         self._ncs_netsim2_commands = ['create-network', 'create-device', 'add-to-network',
-                                      'add-device', 'delete-devices', 'delete-network']
+                                      'add-device', 'delete-devices', 'delete-network', 'update-ip', 'update-port']
         self.options = self._help + self._version + \
             self._ncs_netsim2_commands + self.__netsim.options
 
@@ -211,7 +211,9 @@ class Netsim2:
             self.__exit
 
         __match_replace = [['add-device <NcsPackage> <DeviceName> |', '''add-device <NcsPackage> <DeviceName>  |
-                  delete-devices <DeviceNames>           |'''],
+                  delete-devices <DeviceNames>           |
+                  update-ip <DeviceName> <ip-address>               |
+                  update-port <DeviceName> <type> <port-no>         |'''],
                            ['get-port devname [ipc | netconf | cli | snmp]', '''get-port devname [ipc | netconf | cli | snmp] |
                   -v | --version            |
                   -h | --help'''],
@@ -262,6 +264,12 @@ class Netsim2:
 
         json.dump(__netsim2_device_mapper, open(self.__netsim_path, 'w'))
         self.__netsim._dump_netsim_mapper(path, __netsim_device_mapper)
+
+    def _update_ip(self, cmd_lst):
+        self.logger.info('To be Added.')
+
+    def _update_port(self, cmd_lst):
+        self.logger.info('To be Added.')
 
     def _delete_network(self, cmd_lst):
         # automatically deleted .netsimdelete file
