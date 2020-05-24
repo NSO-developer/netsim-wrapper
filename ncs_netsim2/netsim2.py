@@ -61,6 +61,9 @@ class Netsim:
         except ValueError as e:
             self.logger.error(e)
             self.__exit
+        except FileNotFoundError as e:
+            self.logger.error('ncs-netsim command not found. please source ncsrc file')
+            self.__exit
         self._ncs_netsim_help = output
 
     @property
