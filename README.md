@@ -19,7 +19,7 @@ ncs-netsim2 is a wrapper on top of ncs-netim with added features like `delete-de
 
 ncs-netsim, It's an powerful tool to build an simulated network envrinoments for Network Service Orchestrator (NSO) it's also called as NCS - NSO. In these network topologies we can test the network configuations based on the need as per the usecase.
 
-ncs-netsim2, We added `delete-devices` feature not to devicate from original business usecase. On the way of achieving this we opened the space to add more features to it, like adding `update-ip`, `update-port`, etc. Today these feature are not exposed to the cli, we need to updated them manually in the configuration files. With these added features to ncs-netsim2 we can remove un-wanted devices from time to time, to not consume disk space and memory.
+ncs-netsim2, We added `delete-devices` feature not to devicate from original business usecase. On the way of achieving this we opened the space to add more features to it, like adding `update-ip`, `update-port`, etc. Today these feature are not exposed to the cli, we need to updated them manually in the configuration files. With these added features to ncs-netsim2 we can manage better and remove un-wanted devices from time to time and to not consume disk space and memory.
 
 ### **How to delete a device(s) from network topology?**
 
