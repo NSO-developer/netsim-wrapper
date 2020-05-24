@@ -18,7 +18,7 @@ with open(path.join(here, 'requirements.txt'), encoding='utf-8') as f:
 setup(
     name = 'ncs-netsim2',
     version = version,
-    description = "ncs-netsim2 is a powerful simulator tool in python. It's a wrapper of ncs-netsim tool with added features",
+    description = "ncs-netsim2 is a wrapper of ncs-netsim tool with added features.",
     long_description = long_description,
     long_description_content_type = 'text/markdown',
     url = 'https://github.com/kirankotari/ncs-netsim2.git',
