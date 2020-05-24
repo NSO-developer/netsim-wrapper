@@ -1,10 +1,10 @@
 # Ncs-Netsim2
 
-When an NSO Developer working on cloud space with devices like ENCS, CSP, etc. your business usecase is to bring up a new devices in the existing topology and configure day0 and day1 configurations.
+When an NSO Developer working on cloud space with devices like ENCS, CSP, etc. your business use case is to bring up a new device in the existing topology and configure day0 and day1 configurations.
 
-This might be easy if you are working on real devices, but it won't be the case all the time due to it's avaliability. The only option left with us is network simulators (ncs-netsim), but due to limitations of the ncs-netsim you need to be deviating from your business usecase. Why? because you don't have option to delete a ncs-netsim device.
+This might be easy if you are working on real devices, but it won't be the case all the time due to its availability. The only option left with us is network simulators (ncs-netsim), but due to limitations of the ncs-netsim you need to be deviating from your business use case. Why? because you don't have the option to delete an ncs-netsim device.
 
-ncs-netsim2 is a wrapper on top of ncs-netim with added features like `delete-devices` so that you need not to deviate from your business usecase. It's written in python and we opened the space to add more features to it.
+ncs-netsim2 is a wrapper on top of ncs-netim with added features like delete-devices so that you need not deviate from your business use case. It's written in python and we opened the space to add more features to it.
 
 - [Introduction](#introduction)
 - [Pre-requisites](#pre-requisites)
@@ -17,9 +17,9 @@ ncs-netsim2 is a wrapper on top of ncs-netim with added features like `delete-de
 
 ## Introduction
 
-ncs-netsim, It's an powerful tool to build an simulated network envrinoments for Network Service Orchestrator (NSO) it's also called as NCS - NSO. In these network topologies we can test the network configuations based on the need as per the usecase.
+ncs-netsim, It's a powerful tool to build a simulated network environment for Network Service Orchestrator (NSO) it's also called as NCS - NSO. In these network topologies we can test the network configurations based on the need as per the use case.
 
-ncs-netsim2, We added `delete-devices` feature not to devicate from original business usecase. On the way of achieving this we opened the space to add more features to it, like adding `update-ip`, `update-port`, etc. Today these feature are not exposed to the cli, we need to updated them manually in the configuration files. With these added features to ncs-netsim2 we can manage better and remove un-wanted devices from time to time and to not consume disk space and memory.
+ncs-netsim2, We added `delete-devices` feature not to deviate from the original business use case. On the way of achieving this we opened the space to add more features to it, like adding `update-ip`, `update-port`, etc. Today these features are not exposed to the cli, we need to update them manually in the configuration files. With these added features to ncs-netsim2 we can manage better and remove unwanted devices from time to time and to not consume disk space and memory.
 
 ### **How to delete a device(s) from network topology?**
 
