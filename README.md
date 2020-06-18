@@ -1,8 +1,8 @@
 # Ncs-Netsim2
 
-When an NSO Developer working on cloud space with devices like ENCS, CSP, etc. your business use case is to bring up a new device (or) updating an NED in the existing topology and configure day0 and day1 configurations.
+When an NSO Developer working on cloud space with devices like ENCS, CSP, etc. your business use case is to bring up a new device in the existing topology and configure day0 and day1 configurations.
 
-This might be good if you are working on real devices, but it won't be the case all the time due to its availability. The only option left with us is network simulators (ncs-netsim), but due to limitations of the ncs-netsim you need to be deviating from your business use case. Why? because you don't have the option to delete an ncs-netsim device.
+This might be good if you are working on real devices, but it won't be the case all the time due to its availability. The only option left with us is network simulators (ncs-netsim), but due to limitations of the ncs-netsim you need to be deviating from your business use case. Why? because you don't have the option to delete an ncs-netsim devices.
 
 ncs-netsim2 is a wrapper on top of ncs-netim with added features like delete-devices so that you need not deviate from your business use case. It's written in python and we opened the space to add more features to it.
 
