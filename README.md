@@ -127,7 +127,10 @@ mode:
   prefix-based:
     cisco-ios-cli-6.56:
       count: 2
-      prefix: ios-
+      prefix: ios-56-
+    cisco-ios-cli-6.55:
+      count: 2
+      prefix: ios-55-
 ```
 
 name-based
@@ -139,8 +142,11 @@ ncs_load: true
 mode:
   name-based:
     cisco-ios-cli-6.56:
-    - ios-test-name-100
-    - ios-test-name-200
+    - ios-56-name-100
+    - ios-56-name-150
+    cisco-ios-cli-6.55:
+    - ios-55-name-200
+    - ios-55-name-250
 ```
 
 ## Help
