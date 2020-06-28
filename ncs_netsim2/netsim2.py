@@ -3,38 +3,27 @@ import re
 import os
 import copy
 import json
+import yaml
 import subprocess
 import logging
 import collections
 from operator import methodcaller
 
-class Netsim:
-    name = 'ncs-netsim'
-    command = ['ncs-netsim']
-    options = []
-    netsim_dir = 'netsim'
+
+class Utils:
+    name = 'utils'
 
     _instance = None
-    _ncs_netsim_help = None
-
-    __stdout = subprocess.PIPE
-    __stderr = subprocess.PIPE
-
-    _split = '#######'
-
-    def __new__(cls, log_level=logging.INFO, log_format=None, *args, **kwargs):
+    def __new__(cls, log_level=logging.INFO, log_format=None):
         if cls._instance is None:
-            cls._instance = object.__new__(cls, *args, **kwargs)
+            cls._instance = object.__new__(cls)
         return cls._instance
 
     def __init__(self, log_level=logging.INFO, log_format=None, *args, **kwargs):
-        # logger setup
         self.__format = log_format
+        self.current_path = os.path.abspath('.')
         self.logger = self.__set_logger_level(log_level)
-
-        # pre-req
-        self.__get_ncs_netsim__help
-        self._options
+        self._setup_yaml
 
     def __set_logger_level(self, log_level):
         if self.__format is None:
@@ -45,12 +34,120 @@ class Netsim:
         logger.setLevel(log_level)
         return logger
 
+    @property
+    def _setup_yaml(self):
+        represent_dict_order = lambda self, data: \
+        self.represent_mapping(
+            'tag:yaml.org,2002:map', 
+            data.items()
+        )
+        yaml.add_representer(collections.OrderedDict, represent_dict_order)
+
     def __del__(self):
         self._instance = None
 
     @property
-    def __exit(self):
+    def _exit(self):
         sys.exit()
+
+    def _dump_yaml(self, filename, template):
+        try:
+            with open(filename, 'w') as f:
+                yaml.dump(template, f, sort_keys=False)
+                self.logger.info("please, find the {} file in current directory".format(filename))
+                self.logger.info("update based on your requirement")
+        except EnvironmentError as e:
+            self.logger.error("error on createing of template..")
+            self.logger.error(e)
+
+    def _dump_json(self, filename, template):
+        try:
+            with open(filename, 'w') as f:
+                json.dump(template, f, indent=2)
+                self.logger.info("please, find the {} file in current directory".format(filename))
+                self.logger.info("update based on your requirement")
+        except EnvironmentError as e:
+            self.logger.error("error on createing of template..")
+            self.logger.error(e)
+
+    def _load_yaml(self, path):
+        data = None
+        try:
+            with open(path) as f:
+                data = yaml.load(f, Loader=yaml.FullLoader)
+        except EnvironmentError as e:
+            self.logger.error("error while loading the {} file..".format(path))
+            self.logger.error(e)
+        return data
+
+    def _load_json(self, path):
+        data = None
+        try:
+            with open(path) as f:
+                data = json.load(f)
+        except EnvironmentError as e:
+            self.logger.error("error while loading the {} file..".format(path))
+            self.logger.error(e)
+        return data
+
+    def _create_file(self, path):
+        if not os.path.exists(path):
+            with open(path, "w") as fp: 
+                json.dump({}, fp)
+
+    def _delete_file(self, path):
+        if os.path.exists(path):
+            os.remove(path)
+
+    def _rstrip_digits(self, given_string):
+        return given_string.rstrip('1234567890')
+
+    def get_index(self, given_list, element):
+        try:
+            return given_list.index(element)
+        except ValueError:
+            return None
+
+    def _load_path(self, cmd_lst, index, filename, filetype='yaml'):
+        if len(cmd_lst) > index+1:
+            path = cmd_lst[index+1]
+        else:
+            path = '{}/{}.{}'.format(self.current_path, filename, filetype)
+        return path
+
+    def _dump_xml(self, filename, xml_data):
+        try:
+            with open(filename, 'w') as fp:
+                fp.write(xml_data)
+        except EnvironmentError as e:
+            self.logger.error("error on createing xml file")
+            self.logger.error(e)
+
+class Netsim(Utils):
+    name = 'ncs-netsim'
+    command = ['ncs-netsim']
+    netsim_options = []
+    netsim_dir = 'netsim'
+
+    _instance = None
+    _ncs_netsim_help = None
+
+    __stdout = subprocess.PIPE
+    __stderr = subprocess.PIPE
+
+    _split = '#######'
+
+    def __new__(cls, log_level=logging.INFO, log_format=None):
+        if cls._instance is None:
+            cls._instance = object.__new__(cls)
+        return cls._instance
+
+    def __init__(self, log_level=logging.INFO, log_format=None, *args, **kwargs):
+        Utils.__init__(self, log_level, log_format)
+
+        # pre-req
+        self.__get_ncs_netsim__help
+        self._netsim_options
 
     @property
     def __get_ncs_netsim__help(self):
@@ -60,17 +157,17 @@ class Netsim:
             output = self._run_command(self.command + ['--help'])
         except ValueError as e:
             self.logger.error(e)
-            self.__exit
+            self._exit
         except FileNotFoundError as e:
             self.logger.error('ncs-netsim command not found. please source ncsrc file')
-            self.__exit
+            self._exit
         self._ncs_netsim_help = output
 
     @property
-    def _options(self):
-        if len(self.options):
+    def _netsim_options(self):
+        if len(self.netsim_options):
             return
-        self.options = self.__fetch_ncs_netsim__commands
+        self.netsim_options = self.__fetch_ncs_netsim__commands
 
     @property
     def __fetch_ncs_netsim__commands(self):
@@ -101,7 +198,33 @@ class Netsim:
             else:
                 self._netsim_devices_created_by[dev_name] = ['add-to-network', each[-2]]
 
-    def _run_command(self, command):
+    @property
+    def _build_network_template(self):
+        template = collections.OrderedDict()
+        template['ned-path'] = '<ned-path>'
+        template['start'] = True
+        template['ncs_load'] = True
+        template['mode'] = collections.OrderedDict()
+        template['mode']['prefix-based'] = collections.OrderedDict()
+        template['mode']['prefix-based']['<ned-name>'] = collections.OrderedDict()
+        template['mode']['prefix-based']['<ned-name>']['count'] = 2
+        template['mode']['prefix-based']['<ned-name>']['prefix'] = '<prefix>'
+        return template
+
+    @property
+    def _build_device_template(self):
+        template = collections.OrderedDict()
+        template['ned-path'] = '<ned-path>'
+        template['start'] = True
+        template['ncs_load'] = True
+        template['mode'] = collections.OrderedDict()
+        template['mode']['name-based'] = collections.OrderedDict()
+        template['mode']['name-based']['<ned-name>'] = []
+        template['mode']['name-based']['<ned-name>'].append('device1')
+        template['mode']['name-based']['<ned-name>'].append('device2')
+        return template
+
+    def _run_command(self, command, throw_err=True):
         self.logger.debug("command `{}` running on ncs-netsim".format(' '.join(command)))
         p = subprocess.Popen(command, stdout=self.__stdout,
                              stderr=self.__stderr)
@@ -110,11 +233,13 @@ class Netsim:
         if err == '' or 'env.sh' in err:
             self.logger.debug("`{}` ran successfully".format(' '.join(command)))
             return out
-        self.logger.error("an error occured while running command `{}`".format(' '.join(command)))
-        self.logger.error('message: {}'.format(err))
-        if 'command not found' in err or 'Unknown command' in err:
-            raise ValueError("command not found.")
-        raise ValueError("try ncs-netsim2 --help")
+        if throw_err:
+            self.logger.error("an error occured while running command `{}`".format(' '.join(command)))
+            self.logger.error('message: {}'.format(err))
+            if 'command not found' in err or 'Unknown command' in err:
+                raise ValueError("command not found.")
+            raise ValueError("try ncs-netsim2 --help")
+        raise ValueError("{}\ntry ncs-netsim2 --help".format(err))
 
     def _netsim_device_mapper(self, data):
         _netsim_mapper = collections.OrderedDict()
@@ -150,12 +275,14 @@ class Netsim:
             index += 1
         fp.close()
 
-    def run_ncs_netsim__command(self, cmd_lst, print_output=True):
+    def run_ncs_netsim__command(self, cmd_lst, print_output=True, throw_err=True):
         try:
-            output = self._run_command(self.command + cmd_lst)
+            output = self._run_command(self.command + cmd_lst, throw_err)
         except ValueError as e:
-            self.logger.error(e)
-            self.__exit
+            if throw_err:
+                self.logger.error(e)
+                self._exit
+            raise ValueError(e)
         # need to print
         if print_output:
             print(output.rstrip('\n'))
@@ -167,16 +294,17 @@ class Netsim:
         return self._netsim_device_mapper(data)
 
 
-class Netsim2:
+class Netsim2(Netsim):
     name = 'ncs-netsim2'
     options = []
-    version = '2.0.5'
+    version = '2.1.0'
 
     _instance = None
     _ncs_netsim2_help = None
     _ncs_netsim2_commands = []
     __netsiminfo = '.netsiminfo'
     __netsimdelete = '.netsimdelete'
+    __filename = 'template'
 
     def __new__(cls, log_level=logging.INFO, log_format=None, *args, **kwargs):
         if cls._instance is None:
@@ -184,16 +312,8 @@ class Netsim2:
         return cls._instance
 
     def __init__(self, log_level=logging.INFO, log_format=None, *args, **kwargs):
-        self.__netsim = Netsim(log_level, log_format)
-        self.logger = self.__netsim.logger
+        Netsim.__init__(self, log_level, log_format)
         self._options
-
-    def __del__(self):
-        self._instance = None
-
-    @property
-    def __exit(self):
-        sys.exit()
 
     @property
     def _options(self):
@@ -201,27 +321,40 @@ class Netsim2:
             return
         self._help = ['-h', '--help']
         self._version = ['-v', '--version']
-        self._ncs_netsim2_commands = ['create-network', 'create-device', 'add-to-network',
-                                      'add-device', 'delete-devices', 'delete-network', 'update-ip', 'update-port']
+        self._template_type = ['yaml', 'json']
+        self._ncs_netsim2_commands = ['create-network', 'create-network-template',
+        'create-network-from',  'create-device', 'create-device-template', 
+        'create-device-from', 'add-to-network', 'add-device', 
+        'delete-devices', 'delete-network', 'update-ip', 'update-port',
+        'start', 'ncs-xml-init']
         self.options = self._help + self._version + \
-            self._ncs_netsim2_commands + self.__netsim.options
+            self._ncs_netsim2_commands + self.netsim_options
 
     @property
     def help(self):
         if self._ncs_netsim2_help is not None:
             # need to print
             print(self._ncs_netsim2_help)
-            self.__exit
+            self._exit
 
-        __match_replace = [['add-device <NcsPackage> <DeviceName> |', '''add-device <NcsPackage> <DeviceName>  |
+        __match_replace = [
+            ['create-network <NcsPackage> <NumDevices> <Prefix> |', 
+            '''create-network-template [yaml | json]             |
+                  create-network-from [yaml | json] <fileName>      |
+                  create-network <NcsPackage> <NumDevices> <Prefix> |'''],
+            ['create-device <NcsPackage> <DeviceName>           |',
+            '''create-device-template  [yaml | json]             |
+                  create-device-from [yaml | json] <fileName>       |
+                  create-device <NcsPackage> <DeviceName>           |'''],
+            ['add-device <NcsPackage> <DeviceName> |', '''add-device <NcsPackage> <DeviceName>  |
                   delete-devices <DeviceNames>           |
                   update-ip <DeviceName> <ip-address>               |
                   update-port <DeviceName> <type> <port-no>         |'''],
-                           ['get-port devname [ipc | netconf | cli | snmp]', '''get-port devname [ipc | netconf | cli | snmp] |
+            ['get-port devname [ipc | netconf | cli | snmp]', '''get-port devname [ipc | netconf | cli | snmp] |
                   -v | --version            |
                   -h | --help'''],
                            ['ncs-netsim ', 'ncs-netsim2 ']]
-        self._ncs_netsim2_help = self.__netsim._ncs_netsim_help
+        self._ncs_netsim2_help = self._ncs_netsim_help
         for each in __match_replace:
             self._ncs_netsim2_help = self._ncs_netsim2_help.replace(each[0], each[1])
         self.help
@@ -230,16 +363,159 @@ class Netsim2:
     def get_version(self):
         # need to print
         print('ncs-netsim2 version {}'.format(self.version))
-        self.__exit
+        self._exit
+
+    def _create_network_template(self, cmd_lst):
+        template = self._build_network_template
+        if 'yaml' in cmd_lst:
+            self._dump_yaml('{}.yaml'.format(self.__filename), template)
+        elif 'json' in cmd_lst:
+            self._dump_json('{}.json'.format(self.__filename), template)
+        else:
+            self.logger.error("invalid options entered..")
+            self._help
+            self._exit
+
+    def _loading_from(self, cmd_lst):
+        device_data = None
+        yaml_index = self.get_index(cmd_lst, 'yaml')
+        json_index = self.get_index(cmd_lst, 'json')
+
+        # loading template
+        if yaml_index:
+            path = self._load_path(cmd_lst, yaml_index, self.__filename, 'yaml')
+            device_data = self._load_yaml(path)
+        elif json_index:
+            path = self._load_path(cmd_lst, json_index, self.__filename, 'json')
+            device_data = self._load_json(path)
+        else:
+            self.logger.error('invalid options entered..')
+            self._help
+            self._exit
+        if device_data is None:
+            self.logger.error('could not able to read the file..!')
+            self._exit
+        return device_data
+
+    def _create_network_from(self, cmd_lst):
+        device_data = self._loading_from(cmd_lst)
+
+        if 'prefix-based' not in device_data['mode']:
+            self.logger.error('today we support only prefix-based')
+            self.logger.info('for name-based use `ncs-netsim2 create-device-from`')
+
+        # creating devices
+        ned_path = device_data['ned-path']
+        neds = device_data['mode']['prefix-based']
+        for i, each_ned in enumerate(neds):
+            if i == 0 and cmd_lst[1] == 'netsim':
+                new_cmd_lst = cmd_lst[:2] + [
+                    'create-network',
+                    '{}/{}'.format(ned_path, each_ned), 
+                    str(neds[each_ned]['count']),
+                    neds[each_ned]['prefix']
+                ]
+                self._create_network(new_cmd_lst)
+            else:
+                new_cmd_lst = cmd_lst[:2] + [
+                    'add-to-network',
+                    '{}/{}'.format(ned_path, each_ned), 
+                    str(neds[each_ned]['count']),
+                    neds[each_ned]['prefix']
+                ]
+                self._add_to_network(new_cmd_lst)
+
+        # starting devices
+        start = device_data['start']
+        if start:
+            self.logger.info("about to start all devices")
+            new_cmd_lst = cmd_lst[:2] + ['start']
+            self._start(new_cmd_lst)
+
+        # loading devices to ncs
+        ncs_load = device_data['ncs_load']
+        if ncs_load:
+            self.logger.info("about to add all devices to ncs")
+            new_cmd_lst = cmd_lst[:2] + ['ncs-xml-init']
+            result = self._ncs_xml_init(new_cmd_lst, print_output=False)
+            self._dump_xml('{}/devices.xml'.format(self.current_path), result)
+            new_cmd_lst = ['ncs_load', '-l', '-m', 'devices.xml']
+            try:
+                self._run_command(new_cmd_lst)
+            except ValueError as e:
+                self.logger.error(e)
+                self._exit
 
     def _create_network(self, cmd_lst):
-        self.__netsim.run_ncs_netsim__command(cmd_lst)
-        self.__create_file(self.__netsim_path)
+        self.run_ncs_netsim__command(cmd_lst)
+        self._create_file(self.__netsim_path)
         # self.__update_netsimdelete_on_create_network # nomore used, it's empty on create..
 
+    def _create_device_template(self, cmd_lst):
+        template = self._build_device_template
+        if 'yaml' in cmd_lst:
+            self._dump_yaml('{}.yaml'.format(self.__filename), template)
+        elif 'json' in cmd_lst:
+            self._dump_json('{}.json'.format(self.__filename), template)
+        else:
+            self.logger.error('invalid options entered..')
+            self._help
+            self._exit
+
+    def _create_device_from(self, cmd_lst):
+        device_lst = []
+        device_data = self._loading_from(cmd_lst)
+
+        if 'name-based' not in device_data['mode']:
+            self.logger.error('today we support only name-based')
+            self.logger.info('for prefix-based use `ncs-netsim2 create-network-from`')
+
+        # creating devices
+        ned_path = device_data['ned-path']
+        neds = device_data['mode']['name-based']
+        for i, each_ned in enumerate(neds):
+            for j, device_name in enumerate(neds[each_ned]):
+                if i == 0 and j == 0 and cmd_lst[1] == 'netsim':
+                    new_cmd_lst = cmd_lst[:2] + [
+                        'create-device',
+                        '{}/{}'.format(ned_path, each_ned), 
+                        device_name
+                    ]
+                    device_lst.append(device_name)
+                    self._create_device(new_cmd_lst)
+                else:
+                    new_cmd_lst = cmd_lst[:2] + [
+                        'add-device',
+                        '{}/{}'.format(ned_path, each_ned), 
+                        device_name
+                    ]
+                    if self._add_device(new_cmd_lst):
+                        device_lst.append(device_name)
+
+        # starting devices
+        start = device_data['start']
+        if start and len(device_lst):
+            self.logger.info("about to start all devices")
+            new_cmd_lst = cmd_lst[:2] + ['start']
+            self._start(new_cmd_lst, device_lst)
+
+        # loading devices to ncs
+        ncs_load = device_data['ncs_load']
+        if ncs_load and len(device_lst):
+            self.logger.info("about to add all devices to ncs")
+            new_cmd_lst = cmd_lst[:2] + ['ncs-xml-init']
+            result = self._ncs_xml_init(new_cmd_lst, print_output=False)
+            self._dump_xml('{}/devices.xml'.format(self.current_path), result)
+            new_cmd_lst = ['ncs_load', '-l', '-m', 'devices.xml']
+            try:
+                self._run_command(new_cmd_lst)
+            except ValueError as e:
+                self.logger.error(e)
+                self._exit
+
     def _create_device(self, cmd_lst):
-        self.__netsim.run_ncs_netsim__command(cmd_lst)
-        self.__create_file(self.__netsim_path)
+        self.run_ncs_netsim__command(cmd_lst)
+        self._create_file(self.__netsim_path)
 
     def _add_to_network(self, cmd_lst):
         _command = 'add-to-network'
@@ -247,7 +523,7 @@ class Netsim2:
 
     def _add_device(self, cmd_lst):
         _command = 'add-device'
-        self.__netsim2_add_devices(cmd_lst, _command)
+        return self.__netsim2_add_devices(cmd_lst, _command)
 
     def _delete_devices(self, cmd_lst):
         if len(cmd_lst) <= 3:
@@ -255,18 +531,18 @@ class Netsim2:
 
         __netsim2_device_mapper = self.read_netsim2(self.__netsim_path)
         path = self.__netsim_path.replace(self.__netsimdelete, self.__netsiminfo)
-        __netsim_device_mapper = self.__netsim.read_netsim(path)
+        __netsim_device_mapper = self.read_netsim(path)
 
         for each in cmd_lst[3:]:
             if each not in __netsim_device_mapper:
                 self.logger.error("device {} not exist".format(each))
-                self.__exit
+                self._exit
             __netsim2_device_mapper[each] = __netsim_device_mapper[each]
             self.__remove_device_from_netsim(self.__netsim_path, each, __netsim_device_mapper[each])
             del __netsim_device_mapper[each]
 
         json.dump(__netsim2_device_mapper, open(self.__netsim_path, 'w'))
-        self.__netsim._dump_netsim_mapper(path, __netsim_device_mapper)
+        self._dump_netsim_mapper(path, __netsim_device_mapper)
 
     def _update_ip(self, cmd_lst):
         self.logger.info('To be Added.')
@@ -276,7 +552,27 @@ class Netsim2:
 
     def _delete_network(self, cmd_lst):
         # automatically deleted .netsimdelete file
-        self.__netsim.run_ncs_netsim__command(cmd_lst, print_output=False)
+        self.run_ncs_netsim__command(cmd_lst, print_output=False)
+
+    def _start(self, cmd_lst, device_lst=[]):
+        start_index = self.get_index(cmd_lst, 'start')
+        if len(cmd_lst) > start_index+1:
+            # device name given by user..!
+            self.run_ncs_netsim__command(cmd_lst)
+            return
+        if len(device_lst):
+            for each in device_lst:
+                self.run_ncs_netsim__command(cmd_lst + [each])
+        else:
+            result = self.run_ncs_netsim__command(
+                cmd_lst[:-1] + ['is-alive'], print_output=False)
+            device_lst = self.__get_device_names_from_is_alive(result)
+            for each in device_lst:
+                self.run_ncs_netsim__command(cmd_lst + [each])
+
+    def _ncs_xml_init(self, cmd_lst, print_output=True):
+        result = self.run_ncs_netsim__command(cmd_lst, print_output)
+        return result
 
     def __run_ncs_netsim2__command(self, cmd_lst):
         self.__netsim_path = '{}/{}'.format(cmd_lst[1], self.__netsimdelete)
@@ -285,17 +581,20 @@ class Netsim2:
             f(Netsim2)
         except ValueError as e:
             self.logger.error(e)
-        self.__exit
+        self._exit
 
-    def __create_file(self, path):
-        if not os.path.exists(path):
-            with open(path, "w") as fp: 
-                json.dump({}, fp)
-
-    def __delete_file(self, path):
-        if os.path.exists(path):
-            os.remove(path)
-
+    def __get_device_names_from_is_alive(self, data):
+        devices_lst = []
+        device_name_pattern = re.compile(r'DEVICE\s+(\S+)\s+(.*)')
+        data = data.split('\n')
+        for each_line in data:
+            result = device_name_pattern.match(each_line)
+            if result:
+                if result.group(2) == 'FAIL':
+                    devices_lst.append(result.group(1))
+                elif result.group(2) == 'OK':
+                    self.logger.info('device {} already started.'.format(result.group(1)))
+        return devices_lst
     def __remove_device_from_netsim(self, path, device, device_mapper):
         path = os.path.abspath(path.replace(self.__netsim_path.split('/')[-1], ''))
         if device_mapper['created_by'] == 'add-device':
@@ -309,7 +608,7 @@ class Netsim2:
 
     def __run_os_command(self, cmd_lst, print_output=True):
         try:
-            output = self.__netsim._run_command(cmd_lst)
+            output = self._run_command(cmd_lst)
         except Exception as e:
             self.logger.error(e)
         # need to print
@@ -319,9 +618,6 @@ class Netsim2:
     def __fetch_device_prefix(self, mapper_dict, created_by):
         prefix = set([i['prefix'] for i in mapper_dict.values() if i['created_by'] in created_by])
         return prefix
-
-    def __rstrip_digits(self, given_string):
-        return given_string.rstrip('1234567890')
 
     def __check_is_valid_prefix(self, current_prefix, command):
         __full_prefix = set()
@@ -343,24 +639,29 @@ class Netsim2:
 
     def __refactor_netsiminfo(self, path):
         # reading and removing the unwanted data from netsiminfo
-        __netsim_device_mapper = self.__netsim.read_netsim(path)
+        __netsim_device_mapper = self.read_netsim(path)
         for each_key in self.__netsim2_device_mapper:
             if each_key in __netsim_device_mapper:
                 del __netsim_device_mapper[each_key]
-        self.__netsim._dump_netsim_mapper(path, __netsim_device_mapper)
+        self._dump_netsim_mapper(path, __netsim_device_mapper)
 
     def __netsim2_add_devices(self, cmd_lst, _command):
         _current_prefix = cmd_lst[-1]
 
         path = self.__netsim_path.replace(self.__netsimdelete, self.__netsiminfo)
-        self.__netsim_device_mapper = self.__netsim.read_netsim(path)
+        self.__netsim_device_mapper = self.read_netsim(path)
         self.__netsim2_device_mapper = self.read_netsim2(self.__netsim_path)
 
         # validating cross-prefix checks
         if self.__check_is_valid_prefix(_current_prefix, _command):
             if len(self.__netsim2_device_mapper) == 0:
-                self.__netsim.run_ncs_netsim__command(cmd_lst)
-                self.__exit
+                try:
+                    self.run_ncs_netsim__command(cmd_lst, throw_err=False)
+                    return True
+                except ValueError as e:
+                    if 'already exists' in str(e):
+                        self.logger.error('device {} already exist.!'.format(cmd_lst[4]))
+                return False
 
             _prefix = self.__fetch_device_prefix(self.__netsim2_device_mapper, [_command])
             self.__netsim_device_mapper.update(self.__netsim2_device_mapper)
@@ -368,8 +669,14 @@ class Netsim2:
 
             # if the prefix is not under delete-devices
             if _current_prefix not in _prefix:
-                self.__netsim._dump_netsim_mapper(path, self.__netsim_device_mapper)
-                self.__netsim.run_ncs_netsim__command(cmd_lst)
+                self._dump_netsim_mapper(path, self.__netsim_device_mapper)
+                try:
+                    self.run_ncs_netsim__command(cmd_lst, throw_err=False)
+                except ValueError as e:
+                    print(e.args)
+                    if 'already exists' in str(e):
+                        self.logger.error('device {} already exist.!'.format(cmd_lst[4]))
+                    return False
 
                 # removing the unwanted data
                 self.__refactor_netsiminfo(path)
@@ -386,12 +693,12 @@ class Netsim2:
     def __netsim2_restore_device(self, path, cmd_lst, __netsim2_device_mapper_temp):
         for k,v in __netsim2_device_mapper_temp.items():
             __temp = dict(filter(lambda d: int(d[1]['netconf_ssh_port']) < int(v['netconf_ssh_port']), self.__netsim_device_mapper.items()))
-            self.__netsim._dump_netsim_mapper(path, __temp)
-            self.__netsim.run_ncs_netsim__command(cmd_lst)
+            self._dump_netsim_mapper(path, __temp)
+            self.run_ncs_netsim__command(cmd_lst)
             del self.__netsim2_device_mapper[k]
             break
 
-        self.__netsim._dump_netsim_mapper(path, self.__netsim_device_mapper)
+        self._dump_netsim_mapper(path, self.__netsim_device_mapper)
         # removing the unwanted data
         self.__refactor_netsiminfo(path)
         json.dump(self.__netsim2_device_mapper, open(self.__netsim_path, 'w'))
@@ -400,22 +707,22 @@ class Netsim2:
         __total_devices = int(cmd_lst[-2])
         if __total_devices <= 0:
             self.logger.error('no. of devices need to be > 0')
-            self.__exit
+            self._exit
 
         for k,v in __netsim2_device_mapper_temp.items():
             __temp = dict(filter(lambda d: int(d[1]['netconf_ssh_port']) < int(v['netconf_ssh_port']), self.__netsim_device_mapper.items()))
-            self.__netsim._dump_netsim_mapper(path, __temp)
+            self._dump_netsim_mapper(path, __temp)
             cmd_lst[-2] = '1'
-            self.__netsim.run_ncs_netsim__command(cmd_lst)
+            self.run_ncs_netsim__command(cmd_lst)
             del self.__netsim2_device_mapper[k]
             __total_devices -= 1
             if __total_devices == 0:
                 break
 
-        self.__netsim._dump_netsim_mapper(path, self.__netsim_device_mapper)
+        self._dump_netsim_mapper(path, self.__netsim_device_mapper)
         if __total_devices > 0:
             cmd_lst[-2] = str(__total_devices)
-            self.__netsim.run_ncs_netsim__command(cmd_lst)
+            self.run_ncs_netsim__command(cmd_lst)
 
         # removing the unwanted data
         self.__refactor_netsiminfo(path)
@@ -434,13 +741,19 @@ class Netsim2:
             self.help
 
         if not netsim_dir:
-            netsim_dir = self.__netsim.netsim_dir
-        
+            try:
+                netsim_dir = self.run_ncs_netsim__command(
+                    ['whichdir'], 
+                    print_output=False, throw_err=False
+                ).strip()
+            except ValueError:
+                netsim_dir = self.netsim_dir
+
         if cmd_lst[0] in self._ncs_netsim2_commands:
             self.__run_ncs_netsim2__command(['--dir', netsim_dir] + cmd_lst)
         else:
-            self.__netsim.run_ncs_netsim__command(['--dir', netsim_dir] + cmd_lst)
-            self.__exit
+            self.run_ncs_netsim__command(['--dir', netsim_dir] + cmd_lst)
+            self._exit
 
     def read_netsim2(self, path):
         if os.path.exists(path):

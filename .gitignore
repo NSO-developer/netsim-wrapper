@@ -4,6 +4,7 @@ backup*
 
 # OS Files
 .DS_Store
+.vscode/
 *.DS_Store
 
 # Byte-compiled / optimized / DLL files
