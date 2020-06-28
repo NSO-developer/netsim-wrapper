@@ -1,14 +1,23 @@
 # Ncs-Netsim2
 
-When an NSO Developer working on cloud space with devices like ENCS, CSP, etc. your business use case is to bring up a new device in the existing topology and configure day0 and day1 configurations.
+ncs-netsim is a great tool, but it lack of following features which are developed as part of ncs-netsim2
 
-This might be easy if you are working on real devices, but it won't be the case all the time due to its availability. The only option left with us is network simulators (ncs-netsim), but due to limitations of the ncs-netsim you need to be deviating from your business use case. Why? because you don't have the option to delete an ncs-netsim device.
+- ncs-netsim2 features  
+  - delete-devices \<device-names>
+  - create-network-from [ yaml | json ] \<filename>
+  - create-device-from [ yaml | json ] \<filename>
+  - create-network-template [ yaml | json ]
+  - create-device-template [ yaml | json ]
+- upcoming features  
+  - update-ip \<device-name> \<ip-address>
+  - update-port \<device-name> \<type> \<port-no>
 
-ncs-netsim2 is a wrapper on top of ncs-netim with added features like delete-devices so that you need not deviate from your business use case. It's written in python and we opened the space to add more features to it.
+ncs-netsim2 is a wrapper on top of ncs-netsim with added features. It's written in python and we opened the space to add more features to it.
 
 - [Introduction](#introduction)
 - [Pre-requisites](#pre-requisites)
 - [Installation](#installation)
+- [Features](#features)
 - [Help](#help)
 - [FAQ](#faq)
 - [Bug Tracking and Support](#bug-tracking-and-support)
@@ -19,36 +28,7 @@ ncs-netsim2 is a wrapper on top of ncs-netim with added features like delete-dev
 
 ncs-netsim, It's a powerful tool to build a simulated network environment for Network Service Orchestrator (NSO) it's also called as NCS - NSO. In these network topologies we can test the network configurations based on the need as per the use case.
 
-ncs-netsim2, We added `delete-devices` feature not to deviate from the original business use case. On the way of achieving this we opened the space to add more features to it, like adding `update-ip`, `update-port`, etc. Today these features are not exposed to the cli, we need to update them manually in the configuration files. With these added features to ncs-netsim2 we can manage better and remove unwanted devices from time to time and to not consume disk space and memory.
-
-### **How to delete a device(s) from network topology?**
-
-```bash
-⋊> ~/k/i/ncs-netsim2 on master ◦ ncs-netsim2 list
-ncs-netsim list for  /Users/kkotari/idea/ncs-netsim2/netsim
-
-name=xr0 netconf=12022 snmp=11022 ipc=5010 cli=10022 dir=/Users/kkotari/idea/ncs-netsim2/netsim/xr/xr0
-name=xr1 netconf=12023 snmp=11023 ipc=5011 cli=10023 dir=/Users/kkotari/idea/ncs-netsim2/netsim/xr/xr1
-name=xr2 netconf=12024 snmp=11024 ipc=5012 cli=10024 dir=/Users/kkotari/idea/ncs-netsim2/netsim/xr/xr2
-name=xr3 netconf=12025 snmp=11025 ipc=5013 cli=10025 dir=/Users/kkotari/idea/ncs-netsim2/netsim/xr/xr3
-⋊> ~/k/i/ncs-netsim2 on master ◦
-```
-
-```bash
-⋊> ~/k/i/ncs-netsim2 on master ◦ ncs-netsim2 delete-devices xr1 xr3
-[ INFO ] :: [ ncs-netsim ] :: deleting device: xr1
-[ INFO ] :: [ ncs-netsim ] :: deleting device: xr3
-⋊> ~/k/i/ncs-netsim2 on master ◦
-```
-
-```bash
-⋊> ~/k/i/ncs-netsim2 on master ◦  ncs-netsim2 list
-ncs-netsim list for  /Users/kkotari/idea/ncs-netsim2/netsim
-
-name=xr0 netconf=12022 snmp=11022 ipc=5010 cli=10022 dir=/Users/kkotari/idea/ncs-netsim2/netsim/xr/xr0
-name=xr2 netconf=12024 snmp=11024 ipc=5012 cli=10024 dir=/Users/kkotari/idea/ncs-netsim2/netsim/xr/xr2
-⋊> ~/k/i/ncs-netsim2 on master ◦
-```
+ncs-netsim2, An open space to automate the ncs-netsim.
 
 ## Pre-requisites
 
@@ -69,16 +49,114 @@ If you're Interested in the source, you can always pull from the github repo:
 
 - From github `git clone https://github.com/kirankotari/ncs-netsim2.git`
 
+## Features
+
+### Delete a device(s) from topology
+
+existing device list
+
+```bash
+⋊> ~/k/i/ncs-netsim2 on master ◦ ncs-netsim2 list
+ncs-netsim list for  /Users/kkotari/idea/ncs-netsim2/netsim
+
+name=xr0 netconf=12022 snmp=11022 ipc=5010 cli=10022 dir=/Users/kkotari/idea/ncs-netsim2/netsim/xr/xr0
+name=xr1 netconf=12023 snmp=11023 ipc=5011 cli=10023 dir=/Users/kkotari/idea/ncs-netsim2/netsim/xr/xr1
+name=xr2 netconf=12024 snmp=11024 ipc=5012 cli=10024 dir=/Users/kkotari/idea/ncs-netsim2/netsim/xr/xr2
+name=xr3 netconf=12025 snmp=11025 ipc=5013 cli=10025 dir=/Users/kkotari/idea/ncs-netsim2/netsim/xr/xr3
+⋊> ~/k/i/ncs-netsim2 on master ◦
+```
+
+deleting devices
+
+```bash
+⋊> ~/k/i/ncs-netsim2 on master ◦ ncs-netsim2 delete-devices xr1 xr3
+[ INFO ] :: [ ncs-netsim ] :: deleting device: xr1
+[ INFO ] :: [ ncs-netsim ] :: deleting device: xr3
+⋊> ~/k/i/ncs-netsim2 on master ◦
+```
+
+latest device list
+
+```bash
+⋊> ~/k/i/ncs-netsim2 on master ◦  ncs-netsim2 list
+ncs-netsim list for  /Users/kkotari/idea/ncs-netsim2/netsim
+
+name=xr0 netconf=12022 snmp=11022 ipc=5010 cli=10022 dir=/Users/kkotari/idea/ncs-netsim2/netsim/xr/xr0
+name=xr2 netconf=12024 snmp=11024 ipc=5012 cli=10024 dir=/Users/kkotari/idea/ncs-netsim2/netsim/xr/xr2
+⋊> ~/k/i/ncs-netsim2 on master ◦
+```
+
+### Create Network/Device Template
+
+Template to automate the Network/Device creation process.
+
+```bash
+⋊> ~/k/i/ncs-netsim2 on master ◦ ncs-netsim2 create-network-template [yaml | json]
+⋊> ~/k/i/ncs-netsim2 on master ◦ ncs-netsim2 create-device-template [yaml | json]
+```
+
+which gives `template.json/yaml` file where you can update the files based on your need/requirement.
+
+### Create Network/Device From Template
+
+We are using the teamplates updated based on your requirement as follows
+
+```bash
+⋊> ~/k/i/ncs-netsim2 on master ◦ ncs-netsim2 create-network-from [yaml | json] <filename>
+⋊> ~/k/i/ncs-netsim2 on master ◦ ncs-netsim2 create-device-template [yaml | json] <filename>
+```
+
+### How to choose the Templates and How they look
+
+These templates follows the same process of ncs-netsim, format is your choice
+
+1. prefix based creation - `ncs-netsim2 create-network-template yaml`
+2. name based creation - `ncs-netsim2 create-device-template yaml`
+
+_Note:- So far we are not supporting combinations._
+
+You can find the examples in the same directory start with `template-create-<...>.yaml/json`.
+
+prefix-based
+
+```yaml
+ned-path: <path-to>/nso-local-lab/nso-run-5.2.1.2/packages
+start: true
+ncs_load: true
+mode:
+  prefix-based:
+    cisco-ios-cli-6.56:
+      count: 2
+      prefix: ios-
+```
+
+name-based
+
+```yaml
+ned-path: <path-to>/nso-local-lab/nso-run-5.2.1.2/packages
+start: true
+ncs_load: true
+mode:
+  name-based:
+    cisco-ios-cli-6.56:
+    - ios-test-name-100
+    - ios-test-name-200
+```
+
 ## Help
 
 ```bash
 ⋊> ~/k/i/ncs-netsim2 on master ◦ ncs-netsim2 --help
 Usage ncs-netsim2  [--dir <NetsimDir>]
+                  create-network-template [yaml | json]             |
+                  create-network-from [yaml | json] <fileName>      |
                   create-network <NcsPackage> <NumDevices> <Prefix> |
+                  create-device-template  [yaml | json]             |
+                  create-device-from [yaml | json] <fileName>       |
                   create-device <NcsPackage> <DeviceName>           |
                   add-to-network <NcsPackage> <NumDevices> <Prefix> |
                   add-device <NcsPackage> <DeviceName>  |
-                  delete-devices <DeviceNames>          |
+                  delete-devices <DeviceNames>           |
                   update-ip <DeviceName> <ip-address>               |
                   update-port <DeviceName> <type> <port-no>         |
                   delete-network                     |
@@ -108,12 +186,12 @@ or $NETSIM_DIR if set.
 ## FAQ
 
 - **Question:** Do I need to install ncs-netsim too?  
- **Answer:** Not really, ncs-netsim tool comes along with NSO. If you are working NSO it's won't be a problem.  
+ **Answer:** Not really, ncs-netsim tool comes along with NSO. If you are working with NSO it's won't be a problem.  
 
 - **Question:** Is python mandatory for ncs-netsim2?  
- **Answer:** Yes, we had wrote the complete logic in python, and wanted to make NSO version independent tool.  
+ **Answer:** Yes, the library is written in python and we wanted not to be dependend on NSO versions.  
 
-- **Question:** Is ncs-netsim2 backword compatable on other commands?  
+- **Question:** Is ncs-netsim2 backword compatable?  
  **Answer:** We recommend to use ncs-netsim2 commands instead of ncs-netsim. However couple of commands are still backward compatable ie. `ncs-netsim list`, etc.  
 
 - **Question:** I am seeing following error ./env.sh: line 12: export: `Fusion.app/Contents/Public:/Applications/Wireshark.app/Contents/MacOS': not a valid identifier
