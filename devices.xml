@@ -1,0 +1,42 @@
+<devices xmlns="http://tail-f.com/ns/ncs">
+   <device>
+     <name>ios-test-name-100</name>
+     <address>127.0.0.1</address>
+     <port>10022</port>
+     <ssh>
+       <host-key>
+         <algorithm>ssh-rsa</algorithm>
+         <key-data>ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQCyFHWQ2ilDqiSHuii8tfiXS6MWuWuKM5fMCt5wdReJP0o68GwdSMW8aG7IZt4dI5SkNP8YeSRk80f9rksc6LIH/9C1ReQsqfqINhrZ16M41+ROb8+Ik/FWjpKvhn+8EaLF3FCUVDzCm+2n3GSJ+chEwVaAWYaGXlEVgSWeHhXF0vBvUtwJGDl4Vn2eDojaOquavf+mtjx0c+HS/hDLeyDPMImJHgI6D6BbrmKEzt/nycseMA/ttT23tU4JGG1ZQGdL/XDyO21ACgcn4Ay1XaSovAARMJhw9efsEREs6jKEegJgYsU8BYdF+4yvyqDIlZpdS2bCDsPkElZ0tUbNV+08l2kdl29/TLn1ke3LWESo2kI27BH8TAAH8FuF+u9QMbOeGbbF7cxrGYOcO0Xbb6YaBxS9GYYcbKXN9X0ljGfqpY1k1/ncGTDMgLieT+6q63U6fDK8NWICTnZQ0G3zVr03sj1m39XjUmGeiDtqXIoPaJVeFXUVJ+TzOAunNDdrcX8= kkotari@KKOTARI-M-C42M</key-data>
+       </host-key>
+     </ssh>
+     <state>
+       <admin-state>unlocked</admin-state>
+     </state>
+     <authgroup>default</authgroup>
+     <device-type>
+       <cli>
+         <ned-id xmlns:id="http://tail-f.com/ns/ned-id/cisco-ios-cli-6.56">id:cisco-ios-cli-6.56</ned-id>
+       </cli>
+     </device-type>
+   </device>
+   <device>
+     <name>ios-test-name-200</name>
+     <address>127.0.0.1</address>
+     <port>10023</port>
+     <ssh>
+       <host-key>
+         <algorithm>ssh-rsa</algorithm>
+         <key-data>ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQCyFHWQ2ilDqiSHuii8tfiXS6MWuWuKM5fMCt5wdReJP0o68GwdSMW8aG7IZt4dI5SkNP8YeSRk80f9rksc6LIH/9C1ReQsqfqINhrZ16M41+ROb8+Ik/FWjpKvhn+8EaLF3FCUVDzCm+2n3GSJ+chEwVaAWYaGXlEVgSWeHhXF0vBvUtwJGDl4Vn2eDojaOquavf+mtjx0c+HS/hDLeyDPMImJHgI6D6BbrmKEzt/nycseMA/ttT23tU4JGG1ZQGdL/XDyO21ACgcn4Ay1XaSovAARMJhw9efsEREs6jKEegJgYsU8BYdF+4yvyqDIlZpdS2bCDsPkElZ0tUbNV+08l2kdl29/TLn1ke3LWESo2kI27BH8TAAH8FuF+u9QMbOeGbbF7cxrGYOcO0Xbb6YaBxS9GYYcbKXN9X0ljGfqpY1k1/ncGTDMgLieT+6q63U6fDK8NWICTnZQ0G3zVr03sj1m39XjUmGeiDtqXIoPaJVeFXUVJ+TzOAunNDdrcX8= kkotari@KKOTARI-M-C42M</key-data>
+       </host-key>
+     </ssh>
+     <state>
+       <admin-state>unlocked</admin-state>
+     </state>
+     <authgroup>default</authgroup>
+     <device-type>
+       <cli>
+         <ned-id xmlns:id="http://tail-f.com/ns/ned-id/cisco-ios-cli-6.56">id:cisco-ios-cli-6.56</ned-id>
+       </cli>
+     </device-type>
+   </device>
+</devices>

@@ -1,0 +1,13 @@
+{
+  "ned-path": "<path-to>/nso-local-lab/nso-run-5.2.1.2/packages",
+  "start": true,
+  "ncs_load": true,
+  "mode": {
+    "name-based": {
+      "cisco-ios-cli-6.56": [
+        "ios-test-name-100",
+        "ios-test-name-200"
+      ]
+    }
+  }
+}
