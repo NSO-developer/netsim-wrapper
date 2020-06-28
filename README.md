@@ -99,7 +99,7 @@ which gives `template.json/yaml` file where you can update the files based on yo
 
 ### Create Network/Device From Template
 
-We are using the teamplates updated based on your requirement as follows
+We are using the templates which are updated based on your requirement
 
 ```bash
 ⋊> ~/k/i/ncs-netsim2 on master ◦ ncs-netsim2 create-network-from [yaml | json] <filename>
