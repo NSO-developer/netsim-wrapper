@@ -103,7 +103,7 @@ We are using the teamplates updated based on your requirement as follows
 
 ```bash
 ⋊> ~/k/i/ncs-netsim2 on master ◦ ncs-netsim2 create-network-from [yaml | json] <filename>
-⋊> ~/k/i/ncs-netsim2 on master ◦ ncs-netsim2 create-device-template [yaml | json] <filename>
+⋊> ~/k/i/ncs-netsim2 on master ◦ ncs-netsim2 create-device-from [yaml | json] <filename>
 ```
 
 ### How to choose the Templates and How they look
