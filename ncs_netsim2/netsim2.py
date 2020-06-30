@@ -209,6 +209,11 @@ class Netsim(Utils):
         template['mode']['prefix-based']['<ned-name>'] = collections.OrderedDict()
         template['mode']['prefix-based']['<ned-name>']['count'] = 2
         template['mode']['prefix-based']['<ned-name>']['prefix'] = '<prefix>'
+        template['pre-config'] = True
+        template['config-path'] = '<path>'
+        template['config'] = []
+        template['config'].append('<filename0>')
+        template['config'].append('<filename1>')
         return template
 
     @property
@@ -222,6 +227,11 @@ class Netsim(Utils):
         template['mode']['name-based']['<ned-name>'] = []
         template['mode']['name-based']['<ned-name>'].append('device1')
         template['mode']['name-based']['<ned-name>'].append('device2')
+        template['pre-config'] = True
+        template['config-path'] = '<path>'
+        template['config'] = []
+        template['config'].append('<filename0>')
+        template['config'].append('<filename1>')
         return template
 
     def _run_command(self, command, throw_err=True):
@@ -297,7 +307,7 @@ class Netsim(Utils):
 class Netsim2(Netsim):
     name = 'ncs-netsim2'
     options = []
-    version = '2.1.0'
+    version = '2.2.0'
 
     _instance = None
     _ncs_netsim2_help = None
@@ -433,6 +443,12 @@ class Netsim2(Netsim):
             self._start(new_cmd_lst)
 
         # loading devices to ncs
+        self._load_devices_to_ncs(device_data, cmd_lst)
+
+        # pre-config is True
+        self._load_per_config(device_data)
+
+    def _load_devices_to_ncs(self, device_data, cmd_lst):
         ncs_load = device_data['ncs_load']
         if ncs_load:
             self.logger.info("about to add all devices to ncs")
@@ -445,6 +461,19 @@ class Netsim2(Netsim):
             except ValueError as e:
                 self.logger.error(e)
                 self._exit
+
+    def _load_per_config(self, device_data):
+        pre_config = device_data.get('pre-config', None)
+        if pre_config:
+            config_path = device_data.get('config-path')
+            for each_file in device_data['config']:
+                file_path = '{}/{}'.format(config_path, each_file)
+                new_cmd_lst = ['ncs_load', '-l', '-m', file_path]
+                try:
+                    self._run_command(new_cmd_lst)
+                except ValueError as e:
+                    self.logger.error(e)
+                    self._exit
 
     def _create_network(self, cmd_lst):
         self.run_ncs_netsim__command(cmd_lst)
@@ -500,18 +529,10 @@ class Netsim2(Netsim):
             self._start(new_cmd_lst, device_lst)
 
         # loading devices to ncs
-        ncs_load = device_data['ncs_load']
-        if ncs_load and len(device_lst):
-            self.logger.info("about to add all devices to ncs")
-            new_cmd_lst = cmd_lst[:2] + ['ncs-xml-init']
-            result = self._ncs_xml_init(new_cmd_lst, print_output=False)
-            self._dump_xml('{}/devices.xml'.format(self.current_path), result)
-            new_cmd_lst = ['ncs_load', '-l', '-m', 'devices.xml']
-            try:
-                self._run_command(new_cmd_lst)
-            except ValueError as e:
-                self.logger.error(e)
-                self._exit
+        self._load_devices_to_ncs(device_data, cmd_lst)
+
+        # pre-config is True
+        self._load_per_config(device_data)
 
     def _create_device(self, cmd_lst):
         self.run_ncs_netsim__command(cmd_lst)
