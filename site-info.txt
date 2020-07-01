@@ -1,0 +1,8 @@
+ebb-site-info sitename IOS-TEST
+ type      campus
+ bds1      ios-test-name-100
+ bds2      ios-test-name-200
+ ip-pool ebb-business-dynamic dynamic-ip-pool
+ ip-pool ebb-premium  premium-professional-ip-pool
+ ip-pool ebb-professional premium-professional-ip-pool
+!
