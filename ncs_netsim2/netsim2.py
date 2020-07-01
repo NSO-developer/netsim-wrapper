@@ -211,6 +211,7 @@ class Netsim(Utils):
         template['ned-path'] = '<ned-path>'
         template['start'] = True
         template['ncs_load'] = True
+        template['auth_group'] = ['<auth-group-path>']
         template['mode'] = collections.OrderedDict()
         template['mode']['prefix-based'] = collections.OrderedDict()
         template['mode']['prefix-based']['<ned-name>'] = collections.OrderedDict()
@@ -229,6 +230,7 @@ class Netsim(Utils):
         template['ned-path'] = '<ned-path>'
         template['start'] = True
         template['ncs_load'] = True
+        template['auth_group'] = ['<auth-group-path>']
         template['mode'] = collections.OrderedDict()
         template['mode']['name-based'] = collections.OrderedDict()
         template['mode']['name-based']['<ned-name>'] = []
@@ -314,7 +316,7 @@ class Netsim(Utils):
 class Netsim2(Netsim):
     name = 'ncs-netsim2'
     options = []
-    version = '2.3.0'
+    version = '2.3.1'
 
     _instance = None
     _ncs_netsim2_help = None
@@ -459,6 +461,18 @@ class Netsim2(Netsim):
     def _load_devices_to_ncs(self, device_data, cmd_lst, device_lst):
         ncs_load = device_data['ncs_load']
         if ncs_load:
+            # auth-group
+            auth_group = device_data.get('auth_group', [])
+            for each_file in auth_group:
+                each_file_path = '{}/{}'.format(self.current_path, each_file)
+                new_cmd_lst = ['ncs_load', '-l', '-m', each_file_path]
+                try:
+                    self._run_command(new_cmd_lst)
+                except ValueError as e:
+                    self.logger.error(e)
+                    self._exit
+
+            # ncs_load
             self.logger.info("about to add devices to ncs")
             new_cmd_lst = cmd_lst[:2] + ['ncs-xml-init'] + device_lst
             result = self._ncs_xml_init(new_cmd_lst, print_output=False)
