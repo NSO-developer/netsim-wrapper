@@ -123,6 +123,13 @@ class Utils:
             self.logger.error("error on createing xml file")
             self.logger.error(e)
 
+    def _run_bash_commands(self, cmd):
+        try:
+            subprocess.call(cmd, shell=True)
+        except EnvironmentError as e:
+            self.logger.error("failed to run command: {}".format(cmd))
+            self.logger.error(e)
+
 class Netsim(Utils):
     name = 'ncs-netsim'
     command = ['ncs-netsim']
@@ -409,6 +416,7 @@ class Netsim2(Netsim):
 
     def _create_network_from(self, cmd_lst):
         device_data = self._loading_from(cmd_lst)
+        device_lst = []
 
         if 'prefix-based' not in device_data['mode']:
             self.logger.error('today we support only prefix-based')
@@ -425,7 +433,8 @@ class Netsim2(Netsim):
                     str(neds[each_ned]['count']),
                     neds[each_ned]['prefix']
                 ]
-                self._create_network(new_cmd_lst)
+                result = self._create_network(new_cmd_lst)
+                device_lst += self.__get_device_names_from_is_alive(result)
             else:
                 new_cmd_lst = cmd_lst[:2] + [
                     'add-to-network',
@@ -433,26 +442,27 @@ class Netsim2(Netsim):
                     str(neds[each_ned]['count']),
                     neds[each_ned]['prefix']
                 ]
-                self._add_to_network(new_cmd_lst)
+                result = self._add_to_network(new_cmd_lst)
+                device_lst += self.__get_device_names_from_is_alive(result)
 
         # starting devices
         start = device_data['start']
         if start:
             self.logger.info("about to start all devices")
             new_cmd_lst = cmd_lst[:2] + ['start']
-            self._start(new_cmd_lst)
+            self._start(new_cmd_lst, device_lst)
 
         # loading devices to ncs
-        self._load_devices_to_ncs(device_data, cmd_lst)
+        self._load_devices_to_ncs(device_data, cmd_lst, device_lst)
 
         # pre-config is True
-        self._load_per_config(device_data)
+        self._load_per_config(device_data, device_lst)
 
-    def _load_devices_to_ncs(self, device_data, cmd_lst):
+    def _load_devices_to_ncs(self, device_data, cmd_lst, device_lst):
         ncs_load = device_data['ncs_load']
         if ncs_load:
-            self.logger.info("about to add all devices to ncs")
-            new_cmd_lst = cmd_lst[:2] + ['ncs-xml-init']
+            self.logger.info("about to add devices to ncs")
+            new_cmd_lst = cmd_lst[:2] + ['ncs-xml-init'] + device_lst
             result = self._ncs_xml_init(new_cmd_lst, print_output=False)
             self._dump_xml('{}/devices.xml'.format(self.current_path), result)
             new_cmd_lst = ['ncs_load', '-l', '-m', 'devices.xml']
@@ -462,9 +472,16 @@ class Netsim2(Netsim):
                 self.logger.error(e)
                 self._exit
 
-    def _load_per_config(self, device_data):
+    def _load_per_config(self, device_data, device_lst):
         pre_config = device_data.get('pre-config', None)
         if pre_config:
+            # devices sync-from
+            for each_device in device_lst:
+                self.logger.info("about to sync-from device {}".format(each_device))
+                cmd = "echo 'devices device {} sync-from' | ncs_cli -u admin -C".format(each_device)
+                self._run_bash_commands(cmd)
+
+            # apply the config
             config_path = device_data.get('config-path')
             for each_file in device_data['config']:
                 file_path = '{}/{}'.format(config_path, each_file)
@@ -476,9 +493,10 @@ class Netsim2(Netsim):
                     self._exit
 
     def _create_network(self, cmd_lst):
-        self.run_ncs_netsim__command(cmd_lst)
+        output = self.run_ncs_netsim__command(cmd_lst)
         self._create_file(self.__netsim_path)
         # self.__update_netsimdelete_on_create_network # nomore used, it's empty on create..
+        return output
 
     def _create_device_template(self, cmd_lst):
         template = self._build_device_template
@@ -510,37 +528,38 @@ class Netsim2(Netsim):
                         '{}/{}'.format(ned_path, each_ned), 
                         device_name
                     ]
-                    device_lst.append(device_name)
                     self._create_device(new_cmd_lst)
+                    device_lst.append(device_name)
                 else:
                     new_cmd_lst = cmd_lst[:2] + [
                         'add-device',
                         '{}/{}'.format(ned_path, each_ned), 
                         device_name
                     ]
-                    if self._add_device(new_cmd_lst):
+                    if self._add_device(new_cmd_lst) != False:
                         device_lst.append(device_name)
 
         # starting devices
         start = device_data['start']
         if start and len(device_lst):
-            self.logger.info("about to start all devices")
+            self.logger.info("about to start devices")
             new_cmd_lst = cmd_lst[:2] + ['start']
             self._start(new_cmd_lst, device_lst)
 
         # loading devices to ncs
-        self._load_devices_to_ncs(device_data, cmd_lst)
+        self._load_devices_to_ncs(device_data, cmd_lst, device_lst)
 
         # pre-config is True
-        self._load_per_config(device_data)
+        self._load_per_config(device_data,device_lst)
 
     def _create_device(self, cmd_lst):
-        self.run_ncs_netsim__command(cmd_lst)
+        result = self.run_ncs_netsim__command(cmd_lst)
         self._create_file(self.__netsim_path)
+        return result
 
     def _add_to_network(self, cmd_lst):
         _command = 'add-to-network'
-        self.__netsim2_add_devices(cmd_lst, _command)
+        return self.__netsim2_add_devices(cmd_lst, _command)
 
     def _add_device(self, cmd_lst):
         _command = 'add-device'
@@ -611,7 +630,7 @@ class Netsim2(Netsim):
         for each_line in data:
             result = device_name_pattern.match(each_line)
             if result:
-                if result.group(2) == 'FAIL':
+                if result.group(2) == 'FAIL' or result.group(2) == 'CREATED':
                     devices_lst.append(result.group(1))
                 elif result.group(2) == 'OK':
                     self.logger.info('device {} already started.'.format(result.group(1)))
@@ -677,8 +696,7 @@ class Netsim2(Netsim):
         if self.__check_is_valid_prefix(_current_prefix, _command):
             if len(self.__netsim2_device_mapper) == 0:
                 try:
-                    self.run_ncs_netsim__command(cmd_lst, throw_err=False)
-                    return True
+                    return self.run_ncs_netsim__command(cmd_lst, throw_err=False)
                 except ValueError as e:
                     if 'already exists' in str(e):
                         self.logger.error('device {} already exist.!'.format(cmd_lst[4]))
@@ -692,7 +710,7 @@ class Netsim2(Netsim):
             if _current_prefix not in _prefix:
                 self._dump_netsim_mapper(path, self.__netsim_device_mapper)
                 try:
-                    self.run_ncs_netsim__command(cmd_lst, throw_err=False)
+                    result = self.run_ncs_netsim__command(cmd_lst, throw_err=False)
                 except ValueError as e:
                     print(e.args)
                     if 'already exists' in str(e):
@@ -701,7 +719,7 @@ class Netsim2(Netsim):
 
                 # removing the unwanted data
                 self.__refactor_netsiminfo(path)
-
+                return result
             else:
                 __netsim2_device_mapper_temp = dict(filter(lambda d: d[1]['prefix'] == _current_prefix, self.__netsim2_device_mapper.items()))
                 __netsim2_device_mapper_temp = collections.OrderedDict(sorted(__netsim2_device_mapper_temp.items(), key=lambda d: d[1]['netconf_ssh_port']))

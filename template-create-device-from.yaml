@@ -1,4 +1,4 @@
-ned-path: /Users/kkotari/cisco/nso-development/du/nso-local-lab/nso-run-5.2.1.2/packages
+ned-path: <path>/nso-local-lab/nso-run-5.2.1.2/packages
 start: true
 ncs_load: true
 mode:
@@ -7,7 +7,7 @@ mode:
     - ios-test-name-100
     - ios-test-name-200
 pre-config: true
-config-path: /Users/kkotari/cisco/innovations/ncs-netsim2
+config-path: <path2>/config
 config:
 - device_data.xml
 - site-info.txt
