@@ -211,7 +211,9 @@ class Netsim(Utils):
         template['ned-path'] = '<ned-path>'
         template['start'] = True
         template['ncs_load'] = True
-        template['auth_group'] = ['<auth-group-path>']
+        template['authgroup'] = collections.OrderedDict()
+        template['authgroup']['path'] = '<path>'
+        template['authgroup']['config'] = ['<filename>']
         template['mode'] = collections.OrderedDict()
         template['mode']['prefix-based'] = collections.OrderedDict()
         template['mode']['prefix-based']['<ned-name>'] = collections.OrderedDict()
@@ -230,7 +232,9 @@ class Netsim(Utils):
         template['ned-path'] = '<ned-path>'
         template['start'] = True
         template['ncs_load'] = True
-        template['auth_group'] = ['<auth-group-path>']
+        template['authgroup'] = collections.OrderedDict()
+        template['authgroup']['path'] = '<path>'
+        template['authgroup']['config'] = ['<filename>']
         template['mode'] = collections.OrderedDict()
         template['mode']['name-based'] = collections.OrderedDict()
         template['mode']['name-based']['<ned-name>'] = []
@@ -316,7 +320,7 @@ class Netsim(Utils):
 class Netsim2(Netsim):
     name = 'ncs-netsim2'
     options = []
-    version = '2.3.1'
+    version = '2.3.2'
 
     _instance = None
     _ncs_netsim2_help = None
@@ -462,15 +466,18 @@ class Netsim2(Netsim):
         ncs_load = device_data['ncs_load']
         if ncs_load:
             # auth-group
-            auth_group = device_data.get('auth_group', [])
-            for each_file in auth_group:
-                each_file_path = '{}/{}'.format(self.current_path, each_file)
-                new_cmd_lst = ['ncs_load', '-l', '-m', each_file_path]
-                try:
-                    self._run_command(new_cmd_lst)
-                except ValueError as e:
-                    self.logger.error(e)
-                    self._exit
+            authgroup = device_data.get('authgroup', {})
+            if authgroup:
+                authgroup_path = authgroup.get('path', '')
+                authgroup_files = authgroup.get('config', '')
+                for each_file in authgroup_files:
+                    each_file_path = '{}/{}'.format(authgroup_path, each_file)
+                    new_cmd_lst = ['ncs_load', '-l', '-m', each_file_path]
+                    try:
+                        self._run_command(new_cmd_lst)
+                    except ValueError as e:
+                        self.logger.error(e)
+                        self._exit
 
             # ncs_load
             self.logger.info("about to add devices to ncs")
