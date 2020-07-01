@@ -314,7 +314,7 @@ class Netsim(Utils):
 class Netsim2(Netsim):
     name = 'ncs-netsim2'
     options = []
-    version = '2.2.0'
+    version = '2.3.0'
 
     _instance = None
     _ncs_netsim2_help = None
@@ -364,9 +364,7 @@ class Netsim2(Netsim):
                   create-device-from [yaml | json] <fileName>       |
                   create-device <NcsPackage> <DeviceName>           |'''],
             ['add-device <NcsPackage> <DeviceName> |', '''add-device <NcsPackage> <DeviceName>  |
-                  delete-devices <DeviceNames>           |
-                  update-ip <DeviceName> <ip-address>               |
-                  update-port <DeviceName> <type> <port-no>         |'''],
+                  delete-devices <DeviceNames>           |'''],
             ['get-port devname [ipc | netconf | cli | snmp]', '''get-port devname [ipc | netconf | cli | snmp] |
                   -v | --version            |
                   -h | --help'''],

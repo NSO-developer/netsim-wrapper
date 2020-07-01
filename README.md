@@ -8,9 +8,6 @@ ncs-netsim is a great tool, but it lack of following features which are develope
   - create-device-from [ yaml | json ] \<filename>
   - create-network-template [ yaml | json ]
   - create-device-template [ yaml | json ]
-- upcoming features  
-  - update-ip \<device-name> \<ip-address>
-  - update-port \<device-name> \<type> \<port-no>
 
 ncs-netsim2 is a wrapper on top of ncs-netsim with added features. It's written in python and we opened the space to add more features to it.
 
@@ -163,8 +160,6 @@ Usage ncs-netsim2  [--dir <NetsimDir>]
                   add-to-network <NcsPackage> <NumDevices> <Prefix> |
                   add-device <NcsPackage> <DeviceName>  |
                   delete-devices <DeviceNames>           |
-                  update-ip <DeviceName> <ip-address>               |
-                  update-port <DeviceName> <type> <port-no>         |
                   delete-network                     |
                   [-a | --async]  start [devname]    |
                   [-a | --async ] stop [devname]     |
