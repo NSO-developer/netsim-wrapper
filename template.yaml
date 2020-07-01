@@ -1,6 +1,11 @@
 ned-path: <ned-path>
+ned-compile: true
 start: true
 ncs_load: true
+authgroup:
+  path: <path>
+  config:
+  - <filename>
 mode:
   name-based:
     <ned-name>:

@@ -209,6 +209,7 @@ class Netsim(Utils):
     def _build_network_template(self):
         template = collections.OrderedDict()
         template['ned-path'] = '<ned-path>'
+        template['ned-compile'] = True
         template['start'] = True
         template['ncs_load'] = True
         template['authgroup'] = collections.OrderedDict()
@@ -230,6 +231,7 @@ class Netsim(Utils):
     def _build_device_template(self):
         template = collections.OrderedDict()
         template['ned-path'] = '<ned-path>'
+        template['ned-compile'] = True
         template['start'] = True
         template['ncs_load'] = True
         template['authgroup'] = collections.OrderedDict()
@@ -320,7 +322,7 @@ class Netsim(Utils):
 class Netsim2(Netsim):
     name = 'ncs-netsim2'
     options = []
-    version = '2.3.2'
+    version = '2.4.0'
 
     _instance = None
     _ncs_netsim2_help = None
@@ -421,6 +423,7 @@ class Netsim2(Netsim):
     def _create_network_from(self, cmd_lst):
         device_data = self._loading_from(cmd_lst)
         device_lst = []
+        start_device_lst = []
 
         if 'prefix-based' not in device_data['mode']:
             self.logger.error('today we support only prefix-based')
@@ -438,7 +441,8 @@ class Netsim2(Netsim):
                     neds[each_ned]['prefix']
                 ]
                 result = self._create_network(new_cmd_lst)
-                device_lst += self.__get_device_names_from_is_alive(result)
+                start_device_lst += self.__get_device_names_not_alive(result)
+                device_lst += self.__get_device_names(result)
             else:
                 new_cmd_lst = cmd_lst[:2] + [
                     'add-to-network',
@@ -447,14 +451,14 @@ class Netsim2(Netsim):
                     neds[each_ned]['prefix']
                 ]
                 result = self._add_to_network(new_cmd_lst)
-                device_lst += self.__get_device_names_from_is_alive(result)
-
+                start_device_lst += self.__get_device_names_not_alive(result)
+                device_lst += self.__get_device_names(result)
         # starting devices
         start = device_data['start']
         if start:
             self.logger.info("about to start all devices")
             new_cmd_lst = cmd_lst[:2] + ['start']
-            self._start(new_cmd_lst, device_lst)
+            self._start(new_cmd_lst, start_device_lst)
 
         # loading devices to ncs
         self._load_devices_to_ncs(device_data, cmd_lst, device_lst)
@@ -468,6 +472,7 @@ class Netsim2(Netsim):
             # auth-group
             authgroup = device_data.get('authgroup', {})
             if authgroup:
+                self.logger.info('configuring authgroup')
                 authgroup_path = authgroup.get('path', '')
                 authgroup_files = authgroup.get('config', '')
                 for each_file in authgroup_files:
@@ -478,6 +483,27 @@ class Netsim2(Netsim):
                     except ValueError as e:
                         self.logger.error(e)
                         self._exit
+
+            # ned compile and reload
+            ned_compile = device_data.get('ned-compile', None)
+            if ned_compile:
+                self.logger.info('compiling the neds')
+                try:
+                    mode = device_data['mode'].keys()[0]
+                    neds = device_data['mode'][mode].keys()
+                    for each_ned in neds:
+                        ned_path = '{}/{}'.format(device_data['ned-path'], each_ned)
+                        cmd = "make clean all | cd {}".format(ned_path)
+                        self._run_bash_commands(cmd)
+                    self.logger.info("about to run package reload force")
+                    cmd = "echo 'packages reload' | ncs_cli -u admin -C"
+                    self._run_bash_commands(cmd)
+                except ValueError as e:
+                    self.logger.error('failed at ned_compiling')
+                    self.logger.error(e)
+                except IndexError as e:
+                    self.logger.error('failed to fetch the mode')
+                    self.logger.error(e)
 
             # ncs_load
             self.logger.info("about to add devices to ncs")
@@ -530,6 +556,7 @@ class Netsim2(Netsim):
 
     def _create_device_from(self, cmd_lst):
         device_lst = []
+        start_device_lst = []
         device_data = self._loading_from(cmd_lst)
 
         if 'name-based' not in device_data['mode']:
@@ -549,6 +576,7 @@ class Netsim2(Netsim):
                     ]
                     self._create_device(new_cmd_lst)
                     device_lst.append(device_name)
+                    start_device_lst.append(device_name)
                 else:
                     new_cmd_lst = cmd_lst[:2] + [
                         'add-device',
@@ -556,14 +584,16 @@ class Netsim2(Netsim):
                         device_name
                     ]
                     if self._add_device(new_cmd_lst) != False:
-                        device_lst.append(device_name)
+                        start_device_lst.append(device_name)
+                    device_lst.append(device_name)
 
         # starting devices
         start = device_data['start']
-        if start and len(device_lst):
+        if start and len(start_device_lst):
             self.logger.info("about to start devices")
             new_cmd_lst = cmd_lst[:2] + ['start']
-            self._start(new_cmd_lst, device_lst)
+            self._start(new_cmd_lst, start_device_lst)
+        self.logger.info("devices are running")
 
         # loading devices to ncs
         self._load_devices_to_ncs(device_data, cmd_lst, device_lst)
@@ -642,7 +672,17 @@ class Netsim2(Netsim):
             self.logger.error(e)
         self._exit
 
-    def __get_device_names_from_is_alive(self, data):
+    def __get_device_names(self, data):
+        devices_lst = []
+        device_name_pattern = re.compile(r'DEVICE\s+(\S+)\s+(.*)')
+        data = data.split('\n')
+        for each_line in data:
+            result = device_name_pattern.match(each_line)
+            if result:
+                devices_lst.append(result.group(1))
+        return devices_lst
+
+    def __get_device_names_not_alive(self, data):
         devices_lst = []
         device_name_pattern = re.compile(r'DEVICE\s+(\S+)\s+(.*)')
         data = data.split('\n')
@@ -718,7 +758,7 @@ class Netsim2(Netsim):
                     return self.run_ncs_netsim__command(cmd_lst, throw_err=False)
                 except ValueError as e:
                     if 'already exists' in str(e):
-                        self.logger.error('device {} already exist.!'.format(cmd_lst[4]))
+                        self.logger.info('device {} already exist.!'.format(cmd_lst[4]))
                 return False
 
             _prefix = self.__fetch_device_prefix(self.__netsim2_device_mapper, [_command])
@@ -733,7 +773,7 @@ class Netsim2(Netsim):
                 except ValueError as e:
                     print(e.args)
                     if 'already exists' in str(e):
-                        self.logger.error('device {} already exist.!'.format(cmd_lst[4]))
+                        self.logger.info('device {} already exist.!'.format(cmd_lst[4]))
                     return False
 
                 # removing the unwanted data
