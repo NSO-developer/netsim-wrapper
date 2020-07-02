@@ -322,7 +322,7 @@ class Netsim(Utils):
 class Netsim2(Netsim):
     name = 'ncs-netsim2'
     options = []
-    version = '2.4.0'
+    version = '2.4.1'
 
     _instance = None
     _ncs_netsim2_help = None
@@ -489,7 +489,7 @@ class Netsim2(Netsim):
             if ned_compile:
                 self.logger.info('compiling the neds')
                 try:
-                    mode = device_data['mode'].keys()[0]
+                    mode = list(device_data['mode'].keys())[0]
                     neds = device_data['mode'][mode].keys()
                     for each_ned in neds:
                         ned_path = '{}/{}'.format(device_data['ned-path'], each_ned)
