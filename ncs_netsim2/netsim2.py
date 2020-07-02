@@ -322,7 +322,7 @@ class Netsim(Utils):
 class Netsim2(Netsim):
     name = 'ncs-netsim2'
     options = []
-    version = '2.4.1'
+    version = '2.4.2'
 
     _instance = None
     _ncs_netsim2_help = None
@@ -529,6 +529,7 @@ class Netsim2(Netsim):
             # apply the config
             config_path = device_data.get('config-path')
             for each_file in device_data['config']:
+                self.logger.info('applying config {}'.format(each_file))
                 file_path = '{}/{}'.format(config_path, each_file)
                 new_cmd_lst = ['ncs_load', '-l', '-m', file_path]
                 try:
