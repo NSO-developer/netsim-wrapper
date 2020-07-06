@@ -322,7 +322,7 @@ class Netsim(Utils):
 class Netsim2(Netsim):
     name = 'ncs-netsim2'
     options = []
-    version = '2.4.2'
+    version = '2.5.0'
 
     _instance = None
     _ncs_netsim2_help = None
