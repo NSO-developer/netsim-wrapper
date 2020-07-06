@@ -20,6 +20,7 @@ ncs-netsim2 is a wrapper on top of ncs-netsim with added features. It's written 
 - [Bug Tracking and Support](#bug-tracking-and-support)
 - [License and Copyright](#license-and-copyrights)
 - [Author and Thanks](#author-and-thanks)
+- [Contact](#contact)
 
 ## Introduction
 
@@ -208,6 +209,6 @@ or $NETSIM_DIR if set.
 
    [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-## Author and Thanks
+## Authors and Thanks
 
-ncs-netsim2 was developed by [Kiran Kumar Kotari](https://github.com/kirankotari)
+ncs-netsim2 was developed by [Kiran Kumar Kotari](https://github.com/kirankotari), For any suggestions or comments contact kirankotari@live.com. If you find any bugs please fix them and send me a pull request.
