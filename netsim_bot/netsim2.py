@@ -668,7 +668,7 @@ class NetsimBot(Netsim):
         self.__netsim_path = '{}/{}'.format(cmd_lst[1], self.__netsimdelete)
         f = methodcaller("_{}".format(cmd_lst[2].replace('-','_')), self, cmd_lst)
         try:
-            f(Netsim2)
+            f(NetsimBot)
         except ValueError as e:
             self.logger.error(e)
         self._exit
