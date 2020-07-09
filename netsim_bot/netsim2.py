@@ -322,7 +322,7 @@ class Netsim(Utils):
 class NetsimBot(Netsim):
     name = 'netsim-bot'
     options = []
-    version = '2.5.1'
+    version = '3.0.0'
 
     _instance = None
     _netsim_bot_help = None
