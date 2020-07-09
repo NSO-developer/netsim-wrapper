@@ -16,17 +16,17 @@ with open(path.join(here, 'requirements.txt'), encoding='utf-8') as f:
     reqs = [each.strip() for each in read_lines]
 
 setup(
-    name = 'ncs-netsim2',
+    name = 'netsim-bot',
     version = version,
-    description = "ncs-netsim2 is a wrapper of ncs-netsim tool with added features.",
+    description = "netsim-bot is a wrapper of ncs-netsim tool with added features.",
     long_description = long_description,
     long_description_content_type = 'text/markdown',
-    url = 'https://github.com/kirankotari/ncs-netsim2.git',
+    url = 'https://github.com/kirankotari/netsim-bot.git',
     author = 'Kiran Kumar Kotari',
     author_email = 'kirankotari@live.com',
     entry_points={
         'console_scripts': [
-            'ncs-netsim2=ncs_netsim2.netsim2:run'
+            'netsim-bot=netsim_bot.netsim2:run'
         ],
     },
     install_requires=reqs,
@@ -41,7 +41,7 @@ setup(
         'Programming Language :: Python :: 3.6',
         'Programming Language :: Python :: 3.7',
         ],
-    keywords = 'Ncs-Netsim, Ncs-Netsim2, delete netsim device',
+    keywords = 'ncs-netsim, netsim-bot, ncs-netsim2, delete netsim device',
     packages = find_packages(where='.', exclude=['tests']),
     include_package_data=True,
 )
