@@ -263,8 +263,8 @@ class Netsim(Utils):
             self.logger.error('message: {}'.format(err))
             if 'command not found' in err or 'Unknown command' in err:
                 raise ValueError("command not found.")
-            raise ValueError("try netsim-bot --help")
-        raise ValueError("{}\ntry netsim-bot --help".format(err))
+            raise ValueError("try netsim-wrapper --help")
+        raise ValueError("{}\ntry netsim-wrapper --help".format(err))
 
     def _netsim_device_mapper(self, data):
         _netsim_mapper = collections.OrderedDict()
@@ -319,14 +319,14 @@ class Netsim(Utils):
         return self._netsim_device_mapper(data)
 
 
-class NetsimBot(Netsim):
-    name = 'netsim-bot'
+class NetsimWrapper(Netsim):
+    name = 'netsim-wrapper'
     options = []
-    version = '3.0.0'
+    version = '3.0.1'
 
     _instance = None
-    _netsim_bot_help = None
-    _netsim_bot_commands = []
+    _netsim_wrapper_help = None
+    _netsim_wrapper_commands = []
     __netsiminfo = '.netsiminfo'
     __netsimdelete = '.netsimdelete'
     __filename = 'template'
@@ -347,19 +347,19 @@ class NetsimBot(Netsim):
         self._help = ['-h', '--help']
         self._version = ['-v', '--version']
         self._template_type = ['yaml', 'json']
-        self._netsim_bot_commands = ['create-network', 'create-network-template',
+        self._netsim_wrapper_commands = ['create-network', 'create-network-template',
         'create-network-from',  'create-device', 'create-device-template', 
         'create-device-from', 'add-to-network', 'add-device', 
         'delete-devices', 'delete-network', 'update-ip', 'update-port',
         'start', 'ncs-xml-init']
         self.options = self._help + self._version + \
-            self._netsim_bot_commands + self.netsim_options
+            self._netsim_wrapper_commands + self.netsim_options
 
     @property
     def help(self):
-        if self._netsim_bot_help is not None:
+        if self._netsim_wrapper_help is not None:
             # need to print
-            print(self._netsim_bot_help)
+            print(self._netsim_wrapper_help)
             self._exit
 
         __match_replace = [
@@ -376,16 +376,16 @@ class NetsimBot(Netsim):
             ['get-port devname [ipc | netconf | cli | snmp]', '''get-port devname [ipc | netconf | cli | snmp] |
                   -v | --version            |
                   -h | --help'''],
-                           ['ncs-netsim ', 'netsim-bot ']]
-        self._netsim_bot_help = self._ncs_netsim_help
+                           ['ncs-netsim ', 'netsim-wrapper ']]
+        self._netsim_wrapper_help = self._ncs_netsim_help
         for each in __match_replace:
-            self._netsim_bot_help = self._netsim_bot_help.replace(each[0], each[1])
+            self._netsim_wrapper_help = self._netsim_wrapper_help.replace(each[0], each[1])
         self.help
 
     @property
     def get_version(self):
         # need to print
-        print('netsim-bot version {}'.format(self.version))
+        print('netsim-wrapper version {}'.format(self.version))
         self._exit
 
     def _create_network_template(self, cmd_lst):
@@ -427,7 +427,7 @@ class NetsimBot(Netsim):
 
         if 'prefix-based' not in device_data['mode']:
             self.logger.error('today we support only prefix-based')
-            self.logger.info('for name-based use `netsim-bot create-device-from`')
+            self.logger.info('for name-based use `netsim-wrapper create-device-from`')
 
         # creating devices
         ned_path = device_data['ned-path']
@@ -562,7 +562,7 @@ class NetsimBot(Netsim):
 
         if 'name-based' not in device_data['mode']:
             self.logger.error('today we support only name-based')
-            self.logger.info('for prefix-based use `netsim-bot create-network-from`')
+            self.logger.info('for prefix-based use `netsim-wrapper create-network-from`')
 
         # creating devices
         ned_path = device_data['ned-path']
@@ -609,17 +609,17 @@ class NetsimBot(Netsim):
 
     def _add_to_network(self, cmd_lst):
         _command = 'add-to-network'
-        return self.__netsim_bot_add_devices(cmd_lst, _command)
+        return self.__netsim_wrapper_add_devices(cmd_lst, _command)
 
     def _add_device(self, cmd_lst):
         _command = 'add-device'
-        return self.__netsim_bot_add_devices(cmd_lst, _command)
+        return self.__netsim_wrapper_add_devices(cmd_lst, _command)
 
     def _delete_devices(self, cmd_lst):
         if len(cmd_lst) <= 3:
             raise ValueError("no device names found")
 
-        __netsim_bot_device_mapper = self.read_netsim_bot(self.__netsim_path)
+        __netsim_wrapper_device_mapper = self.read_netsim_wrapper(self.__netsim_path)
         path = self.__netsim_path.replace(self.__netsimdelete, self.__netsiminfo)
         __netsim_device_mapper = self.read_netsim(path)
 
@@ -627,11 +627,11 @@ class NetsimBot(Netsim):
             if each not in __netsim_device_mapper:
                 self.logger.error("device {} not exist".format(each))
                 self._exit
-            __netsim_bot_device_mapper[each] = __netsim_device_mapper[each]
+            __netsim_wrapper_device_mapper[each] = __netsim_device_mapper[each]
             self.__remove_device_from_netsim(self.__netsim_path, each, __netsim_device_mapper[each])
             del __netsim_device_mapper[each]
 
-        json.dump(__netsim_bot_device_mapper, open(self.__netsim_path, 'w'))
+        json.dump(__netsim_wrapper_device_mapper, open(self.__netsim_path, 'w'))
         self._dump_netsim_mapper(path, __netsim_device_mapper)
 
     def _update_ip(self, cmd_lst):
@@ -664,11 +664,11 @@ class NetsimBot(Netsim):
         result = self.run_ncs_netsim__command(cmd_lst, print_output)
         return result
 
-    def __run_netsim_bot__command(self, cmd_lst):
+    def __run_netsim_wrapper__command(self, cmd_lst):
         self.__netsim_path = '{}/{}'.format(cmd_lst[1], self.__netsimdelete)
         f = methodcaller("_{}".format(cmd_lst[2].replace('-','_')), self, cmd_lst)
         try:
-            f(NetsimBot)
+            f(NetsimWrapper)
         except ValueError as e:
             self.logger.error(e)
         self._exit
@@ -723,9 +723,9 @@ class NetsimBot(Netsim):
         __full_prefix = set()
 
         created_by=['add-device'] if command == 'add-to-network' else ['add-to-network']
-        __netsim_bot_prefix = self.__fetch_device_prefix(self.__netsim_bot_device_mapper, created_by)
+        __netsim_wrapper_prefix = self.__fetch_device_prefix(self.__netsim_wrapper_device_mapper, created_by)
         __netsim_prefix = self.__fetch_device_prefix(self.__netsim_device_mapper, created_by)
-        __full_prefix.update(__netsim_prefix, __netsim_bot_prefix)
+        __full_prefix.update(__netsim_prefix, __netsim_wrapper_prefix)
 
         if command == 'add-to-network':
             for each in __full_prefix:
@@ -740,21 +740,21 @@ class NetsimBot(Netsim):
     def __refactor_netsiminfo(self, path):
         # reading and removing the unwanted data from netsiminfo
         __netsim_device_mapper = self.read_netsim(path)
-        for each_key in self.__netsim_bot_device_mapper:
+        for each_key in self.__netsim_wrapper_device_mapper:
             if each_key in __netsim_device_mapper:
                 del __netsim_device_mapper[each_key]
         self._dump_netsim_mapper(path, __netsim_device_mapper)
 
-    def __netsim_bot_add_devices(self, cmd_lst, _command):
+    def __netsim_wrapper_add_devices(self, cmd_lst, _command):
         _current_prefix = cmd_lst[-1]
 
         path = self.__netsim_path.replace(self.__netsimdelete, self.__netsiminfo)
         self.__netsim_device_mapper = self.read_netsim(path)
-        self.__netsim_bot_device_mapper = self.read_netsim_bot(self.__netsim_path)
+        self.__netsim_wrapper_device_mapper = self.read_netsim_wrapper(self.__netsim_path)
 
         # validating cross-prefix checks
         if self.__check_is_valid_prefix(_current_prefix, _command):
-            if len(self.__netsim_bot_device_mapper) == 0:
+            if len(self.__netsim_wrapper_device_mapper) == 0:
                 try:
                     return self.run_ncs_netsim__command(cmd_lst, throw_err=False)
                 except ValueError as e:
@@ -762,8 +762,8 @@ class NetsimBot(Netsim):
                         self.logger.info('device {} already exist.!'.format(cmd_lst[4]))
                 return False
 
-            _prefix = self.__fetch_device_prefix(self.__netsim_bot_device_mapper, [_command])
-            self.__netsim_device_mapper.update(self.__netsim_bot_device_mapper)
+            _prefix = self.__fetch_device_prefix(self.__netsim_wrapper_device_mapper, [_command])
+            self.__netsim_device_mapper.update(self.__netsim_wrapper_device_mapper)
             self.__netsim_device_mapper = collections.OrderedDict(sorted(self.__netsim_device_mapper.items(), key=lambda d: d[1]['netconf_ssh_port']))
 
             # if the prefix is not under delete-devices
@@ -781,39 +781,39 @@ class NetsimBot(Netsim):
                 self.__refactor_netsiminfo(path)
                 return result
             else:
-                __netsim_bot_device_mapper_temp = dict(filter(lambda d: d[1]['prefix'] == _current_prefix, self.__netsim_bot_device_mapper.items()))
-                __netsim_bot_device_mapper_temp = collections.OrderedDict(sorted(__netsim_bot_device_mapper_temp.items(), key=lambda d: d[1]['netconf_ssh_port']))
+                __netsim_wrapper_device_mapper_temp = dict(filter(lambda d: d[1]['prefix'] == _current_prefix, self.__netsim_wrapper_device_mapper.items()))
+                __netsim_wrapper_device_mapper_temp = collections.OrderedDict(sorted(__netsim_wrapper_device_mapper_temp.items(), key=lambda d: d[1]['netconf_ssh_port']))
 
                 if _command == 'add-to-network':
-                    self.__netsim_bot_restore_devices(path, cmd_lst, __netsim_bot_device_mapper_temp)
+                    self.__netsim_wrapper_restore_devices(path, cmd_lst, __netsim_wrapper_device_mapper_temp)
                 else:
-                    self.__netsim_bot_restore_device(path, cmd_lst, __netsim_bot_device_mapper_temp)
+                    self.__netsim_wrapper_restore_device(path, cmd_lst, __netsim_wrapper_device_mapper_temp)
 
-    def __netsim_bot_restore_device(self, path, cmd_lst, __netsim_bot_device_mapper_temp):
-        for k,v in __netsim_bot_device_mapper_temp.items():
+    def __netsim_wrapper_restore_device(self, path, cmd_lst, __netsim_wrapper_device_mapper_temp):
+        for k,v in __netsim_wrapper_device_mapper_temp.items():
             __temp = dict(filter(lambda d: int(d[1]['netconf_ssh_port']) < int(v['netconf_ssh_port']), self.__netsim_device_mapper.items()))
             self._dump_netsim_mapper(path, __temp)
             self.run_ncs_netsim__command(cmd_lst)
-            del self.__netsim_bot_device_mapper[k]
+            del self.__netsim_wrapper_device_mapper[k]
             break
 
         self._dump_netsim_mapper(path, self.__netsim_device_mapper)
         # removing the unwanted data
         self.__refactor_netsiminfo(path)
-        json.dump(self.__netsim_bot_device_mapper, open(self.__netsim_path, 'w'))
+        json.dump(self.__netsim_wrapper_device_mapper, open(self.__netsim_path, 'w'))
 
-    def __netsim_bot_restore_devices(self, path, cmd_lst, __netsim_bot_device_mapper_temp):
+    def __netsim_wrapper_restore_devices(self, path, cmd_lst, __netsim_wrapper_device_mapper_temp):
         __total_devices = int(cmd_lst[-2])
         if __total_devices <= 0:
             self.logger.error('no. of devices need to be > 0')
             self._exit
 
-        for k,v in __netsim_bot_device_mapper_temp.items():
+        for k,v in __netsim_wrapper_device_mapper_temp.items():
             __temp = dict(filter(lambda d: int(d[1]['netconf_ssh_port']) < int(v['netconf_ssh_port']), self.__netsim_device_mapper.items()))
             self._dump_netsim_mapper(path, __temp)
             cmd_lst[-2] = '1'
             self.run_ncs_netsim__command(cmd_lst)
-            del self.__netsim_bot_device_mapper[k]
+            del self.__netsim_wrapper_device_mapper[k]
             __total_devices -= 1
             if __total_devices == 0:
                 break
@@ -825,7 +825,7 @@ class NetsimBot(Netsim):
 
         # removing the unwanted data
         self.__refactor_netsiminfo(path)
-        json.dump(self.__netsim_bot_device_mapper, open(self.__netsim_path, 'w'))
+        json.dump(self.__netsim_wrapper_device_mapper, open(self.__netsim_path, 'w'))
 
     def run_command(self, cmd_lst, netsim_dir=None):
         if '--dir' in cmd_lst:
@@ -848,13 +848,13 @@ class NetsimBot(Netsim):
             except ValueError:
                 netsim_dir = self.netsim_dir
 
-        if cmd_lst[0] in self._netsim_bot_commands:
-            self.__run_netsim_bot__command(['--dir', netsim_dir] + cmd_lst)
+        if cmd_lst[0] in self._netsim_wrapper_commands:
+            self.__run_netsim_wrapper__command(['--dir', netsim_dir] + cmd_lst)
         else:
             self.run_ncs_netsim__command(['--dir', netsim_dir] + cmd_lst)
             self._exit
 
-    def read_netsim_bot(self, path):
+    def read_netsim_wrapper(self, path):
         if os.path.exists(path):
             with open(path, 'r') as fp:
                 data = json.load(fp)
@@ -863,7 +863,7 @@ class NetsimBot(Netsim):
 
 
 def run():
-    obj = NetsimBot()
+    obj = NetsimWrapper()
     if len(sys.argv) >= 2:
         if sys.argv[1] not in obj.options:
             obj.help
