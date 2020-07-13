@@ -211,4 +211,4 @@ or $NETSIM_DIR if set.
 
 ## Authors and Thanks
 
-netsim-wrapper was developed by [Kiran Kumar Kotari](https://github.com/kirankotari), For any suggestions or comments contact kirankotari@live.com. If you find any bugs please fix them and send me a pull request.
+netsim-wrapper was developed by [Kiran Kumar Kotari](https://github.com/kirankotari), For any suggestions or comments contact kkotari@cisco.com or kirankotari@live.com. If you find any bugs please fix them and send me a pull request.
