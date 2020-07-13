@@ -1,5 +1,10 @@
 # Netsim Wrapper
 
+[![License: Apache 2.0](https://img.shields.io/badge/License-Apache2-yellow.svg)](https://opensource.org/licenses/Apache-2.0)
+[![Version: 3.0.2](https://img.shields.io/badge/Version-3.0.2-parrotgreen.svg)](https://github.com/NSO-developer/netsim-wrapper)
+[![Downloads](https://pepy.tech/badge/netsim-wrapper)](https://pepy.tech/project/netsim-wrapper)
+[![Downloads](https://pepy.tech/badge/netsim-wrapper/week)](https://pepy.tech/project/netsim-wrapper/week)
+
 ncs-netsim is a great tool, but it lack of following features which are developed as part of netsim-wrapper
 
 - netsim-wrapper features  
@@ -205,9 +210,9 @@ or $NETSIM_DIR if set.
 
 ## License and Copyright
 
-- netsim-wrapper is licensed [MIT](http://opensource.org/licenses/mit-license.php) *2019-2020*
+- netsim-wrapper is licensed [Apache 2.0](https://opensource.org/licenses/Apache-2.0) *2019-2020*
 
-   [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+   [![License: Apache 2.0](https://img.shields.io/badge/License-Apache2-yellow.svg)](https://opensource.org/licenses/Apache-2.0)
 
 ## Authors and Thanks
 

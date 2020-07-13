@@ -322,7 +322,7 @@ class Netsim(Utils):
 class NetsimWrapper(Netsim):
     name = 'netsim-wrapper'
     options = []
-    version = '3.0.1'
+    version = '3.0.2'
 
     _instance = None
     _netsim_wrapper_help = None
@@ -656,7 +656,7 @@ class NetsimWrapper(Netsim):
         else:
             result = self.run_ncs_netsim__command(
                 cmd_lst[:-1] + ['is-alive'], print_output=False)
-            device_lst = self.__get_device_names_from_is_alive(result)
+            device_lst = self.__get_device_names_not_alive(result)
             for each in device_lst:
                 self.run_ncs_netsim__command(cmd_lst + [each])
 
