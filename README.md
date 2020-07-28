@@ -109,24 +109,28 @@ We are using the templates which are updated based on your requirement
 ⋊> ~/k/i/netsim-wrapper on master ◦ netsim-wrapper create-device-from [yaml | json] <filename>
 ```
 
-### How to choose the Templates and How they look
+### How to choose the Templates and How they look (Template options)
 
 These templates follows the same process of ncs-netsim, format is your choice
 
-1. prefix based creation - `netsim-wrapper create-network-template yaml`
-2. name based creation - `netsim-wrapper create-device-template yaml`
+1. prefix based creation - `netsim-wrapper create-network-template yaml or json <file>`
+2. name based creation - `netsim-wrapper create-device-template yaml or json <file>`
 
-_Note:- So far we are not supporting combinations._
+_Note:- If you need combinations of network/device template, we suggest to create 2 template files and run the command for each type._
 
-You can find the examples in the same directory start with `template-create-<...>.yaml/json`.
+You can find the example all supported templates under it's folder.
 
-prefix-based
+#### prefix-based template example
 
 ```yaml
-ned-path: <path-to>/nso-local-lab/nso-run-5.2.1.2/packages
-start: true
-ncs_load: true
-mode:
+nso-packages-path: <path-to>/nso-local-lab/nso-run-5.2.1.2/packages
+compile-neds: true
+start-devices: true
+add-to-nso: true
+add-authgroup-to-nso: true
+authgroup:
+  type: system
+device-mode:
   prefix-based:
     cisco-ios-cli-6.56:
       count: 2
@@ -134,15 +138,24 @@ mode:
     cisco-ios-cli-6.55:
       count: 2
       prefix: ios-55-
+load-day0-config: true
+config-path: <path-to>/nso-local-lab/nso-run-5.2.1.2/preconfig
+config-files:
+- devices_ios_56.xml
+- devices_ios_55.xml
 ```
 
-name-based
+#### name-based template example
 
 ```yaml
-ned-path: <path-to>/nso-local-lab/nso-run-5.2.1.2/packages
-start: true
-ncs_load: true
-mode:
+nso-packages-path: <path-to>/nso-local-lab/nso-run-5.2.1.2/packages
+compile-neds: true
+start-devices: true
+add-to-nso: true
+add-authgroup-to-nso: true
+authgroup:
+  type: system
+device-mode:
   name-based:
     cisco-ios-cli-6.56:
     - ios-56-name-100
@@ -150,6 +163,56 @@ mode:
     cisco-ios-cli-6.55:
     - ios-55-name-200
     - ios-55-name-250
+load-day0-config: true
+config-path: <path-to>/nso-local-lab/nso-run-5.2.1.2/preconfig
+config-files:
+- devices_ios_56.xml
+- devices_ios_55.xml
+```
+
+#### Template options in detail
+
+```yaml
+nso-packages-path:
+  info: nso package path
+
+compile-neds:
+  options: true or false
+  info: which run _make clean all_ for each ned
+
+start-devices:
+  options: true or false
+  info: starts devices using _ncs-netsim start_, it's intellegent enought to start only stopped devices
+
+add-to-nso:
+  options: true or false
+  info: adds day0 devices config to nso
+
+add-authgroup-to-nso:
+  options:
+    type: local or system or custom
+    path: authgroup config file path this option is only for custom
+  info: configuring authgroup
+
+device-mode:
+  prefix-based:
+    ned-name:
+      options:
+        count: number of devices
+        prefix: prefix text for device names
+  name-based:
+    ned-name:
+      options: device names
+
+load-day0-config:
+  options: true or false
+  info: to add day0 config if the value is true
+
+config-path:
+  info: configuratin folder path  
+
+config-files:
+  info: loads each configuration file from given config-path
 ```
 
 ## Help
@@ -185,7 +248,7 @@ Usage netsim-wrapper  [--dir <NetsimDir>]
                   -v | --version            |
                   -h | --help
 
-See manpage for netsim-wrapper for more info. NetsimDir is optional
+See manpage for ncs-netsim for more info. NetsimDir is optional
 and defaults to ./netsim, any netsim directory above in the path,
 or $NETSIM_DIR if set.
 ```
