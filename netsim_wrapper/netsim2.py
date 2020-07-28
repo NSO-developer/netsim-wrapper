@@ -532,6 +532,7 @@ class NetsimWrapper(Netsim):
             <default-map>
                 <remote-name>admin</remote-name>
                 <remote-password>admin</remote-password>
+                <remote-secondary-password>admin</remote-secondary-password>
             </default-map>
             <umap>
                 <local-user>admin</local-user>
@@ -539,18 +540,8 @@ class NetsimWrapper(Netsim):
                 <remote-password>admin</remote-password>
             </umap>
             <umap>
-                <local-user>ncsadmin</local-user>
-                <remote-name>ncsadmin</remote-name>
-                <remote-password>admin</remote-password>
-            </umap>
-            <umap>
                 <local-user>oper</local-user>
                 <remote-name>oper</remote-name>
-                <remote-password>admin</remote-password>
-            </umap>
-            <umap>
-                <local-user>system</local-user>
-                <remote-name>admin</remote-name>
                 <remote-password>admin</remote-password>
             </umap>
         </group>
