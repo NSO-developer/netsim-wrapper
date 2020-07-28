@@ -1,0 +1,25 @@
+{
+  "nso-packages-path": "<packages-path>",
+  "compile-neds": true,
+  "start-devices": true,
+  "add-to-nso": true,
+  "add-authgroup-to-nso": true,
+  "authgroup": {
+    "type": "custom",
+    "path": "<authgroup-file-path>"
+  },
+  "device-mode": {
+    "name-based": {
+      "<ned-name>": [
+        "device1",
+        "device2"
+      ]
+    }
+  },
+  "load-day0-config": true,
+  "config-path": "<path>",
+  "config-files": [
+    "<filename0>",
+    "<filename1>"
+  ]
+}

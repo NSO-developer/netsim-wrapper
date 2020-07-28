@@ -130,6 +130,12 @@ class Utils:
             self.logger.error("failed to run command: {}".format(cmd))
             self.logger.error(e)
 
+    def _is_file(self, fname):
+        return os.path.isfile(fname)
+
+    def _is_folder(self, fname):
+        return os.path.isdir(fname)
+
 class Netsim(Utils):
     name = 'ncs-netsim'
     command = ['ncs-netsim']
@@ -208,45 +214,47 @@ class Netsim(Utils):
     @property
     def _build_network_template(self):
         template = collections.OrderedDict()
-        template['ned-path'] = '<ned-path>'
-        template['ned-compile'] = True
-        template['start'] = True
-        template['ncs_load'] = True
-        template['authgroup'] = collections.OrderedDict()
-        template['authgroup']['path'] = '<path>'
-        template['authgroup']['config'] = ['<filename>']
-        template['mode'] = collections.OrderedDict()
-        template['mode']['prefix-based'] = collections.OrderedDict()
-        template['mode']['prefix-based']['<ned-name>'] = collections.OrderedDict()
-        template['mode']['prefix-based']['<ned-name>']['count'] = 2
-        template['mode']['prefix-based']['<ned-name>']['prefix'] = '<prefix>'
-        template['pre-config'] = True
-        template['config-path'] = '<path>'
-        template['config'] = []
-        template['config'].append('<filename0>')
-        template['config'].append('<filename1>')
+        template['nso-packages-path'] = '<packages-path>' # String
+        template['compile-neds'] = True # True/False
+        template['start-devices'] = True # True/False
+        template['add-to-nso'] = True # True/False
+        template['add-authgroup-to-nso'] = True # True/False
+        template['authgroup'] = collections.OrderedDict() # Dict
+        template['authgroup']['type'] = 'custom' # local/system/custom
+        template['authgroup']['path'] = '<authgroup-file-path>'
+        template['device-mode'] = collections.OrderedDict()
+        template['device-mode']['prefix-based'] = collections.OrderedDict()
+        template['device-mode']['prefix-based']['<ned-name>'] = collections.OrderedDict()
+        template['device-mode']['prefix-based']['<ned-name>']['count'] = 2
+        template['device-mode']['prefix-based']['<ned-name>']['prefix'] = '<prefix>'
+        template['load-day0-config'] = True
+        template['config-path'] = '<path>' # config path
+        template['config-files'] = []
+        template['config-files'].append('<filename0>') # each file path
+        template['config-files'].append('<filename1>')
         return template
 
     @property
     def _build_device_template(self):
         template = collections.OrderedDict()
-        template['ned-path'] = '<ned-path>'
-        template['ned-compile'] = True
-        template['start'] = True
-        template['ncs_load'] = True
+        template['nso-packages-path'] = '<packages-path>' # String
+        template['compile-neds'] = True # True/False
+        template['start-devices'] = True # True/False
+        template['add-to-nso'] = True # True/False
+        template['add-authgroup-to-nso'] = True # True/False
         template['authgroup'] = collections.OrderedDict()
-        template['authgroup']['path'] = '<path>'
-        template['authgroup']['config'] = ['<filename>']
-        template['mode'] = collections.OrderedDict()
-        template['mode']['name-based'] = collections.OrderedDict()
-        template['mode']['name-based']['<ned-name>'] = []
-        template['mode']['name-based']['<ned-name>'].append('device1')
-        template['mode']['name-based']['<ned-name>'].append('device2')
-        template['pre-config'] = True
-        template['config-path'] = '<path>'
-        template['config'] = []
-        template['config'].append('<filename0>')
-        template['config'].append('<filename1>')
+        template['authgroup']['type'] = 'custom' # local/system/custom
+        template['authgroup']['path'] = '<authgroup-file-path>'
+        template['device-mode'] = collections.OrderedDict()
+        template['device-mode']['name-based'] = collections.OrderedDict()
+        template['device-mode']['name-based']['<ned-name>'] = []
+        template['device-mode']['name-based']['<ned-name>'].append('device1')
+        template['device-mode']['name-based']['<ned-name>'].append('device2')
+        template['load-day0-config'] = True # True/False
+        template['config-path'] = '<path>' # config path
+        template['config-files'] = []
+        template['config-files'].append('<filename0>') # each file path
+        template['config-files'].append('<filename1>')
         return template
 
     def _run_command(self, command, throw_err=True):
@@ -363,23 +371,24 @@ class NetsimWrapper(Netsim):
             self._exit
 
         __match_replace = [
-            ['create-network <NcsPackage> <NumDevices> <Prefix> |', 
+            ['create-network <NcsPackage> <NumDevices> <Prefix>\s+\|', 
             '''create-network-template [yaml | json]             |
                   create-network-from [yaml | json] <fileName>      |
                   create-network <NcsPackage> <NumDevices> <Prefix> |'''],
-            ['create-device <NcsPackage> <DeviceName>           |',
+            ['create-device <NcsPackage> <DeviceName>\s+\|',
             '''create-device-template  [yaml | json]             |
                   create-device-from [yaml | json] <fileName>       |
                   create-device <NcsPackage> <DeviceName>           |'''],
-            ['add-device <NcsPackage> <DeviceName> |', '''add-device <NcsPackage> <DeviceName>  |
+            ['add-device <NcsPackage> <DeviceName>\s+\|', '''add-device <NcsPackage> <DeviceName>  |
                   delete-devices <DeviceNames>           |'''],
-            ['get-port devname [ipc | netconf | cli | snmp]', '''get-port devname [ipc | netconf | cli | snmp] |
+            ['get-port devname \[ipc | netconf | cli | snmp\]\s*$', '''get-port devname [ipc | netconf | cli | snmp] |
                   -v | --version            |
                   -h | --help'''],
-                           ['ncs-netsim ', 'netsim-wrapper ']]
+            ['ncs-netsim ', 'netsim-wrapper ']
+        ]
         self._netsim_wrapper_help = self._ncs_netsim_help
         for each in __match_replace:
-            self._netsim_wrapper_help = self._netsim_wrapper_help.replace(each[0], each[1])
+            self._netsim_wrapper_help = re.sub(each[0], each[1], self._netsim_wrapper_help, 1)
         self.help
 
     @property
@@ -425,118 +434,217 @@ class NetsimWrapper(Netsim):
         device_lst = []
         start_device_lst = []
 
-        if 'prefix-based' not in device_data['mode']:
-            self.logger.error('today we support only prefix-based')
+        if 'device-mode' not in device_data:
+            self.logger.error('given template is invalid..!')
+            self.logger.error('either template belongs to older version')
+            self.logger.error('create a new template and update accordingly')
+            self._exit
+
+        if 'prefix-based' not in device_data['device-mode']:
+            self.logger.error('create-network-from supports only perfix-based')
             self.logger.info('for name-based use `netsim-wrapper create-device-from`')
+            self._exit
 
         # creating devices
-        ned_path = device_data['ned-path']
-        neds = device_data['mode']['prefix-based']
+        nso_package_path = device_data.get('nso-packages-path', None)
+        if not self._is_folder(nso_package_path):
+            self.logger.error('given nso-package-path is not valid.')
+            self._exit
+
+        neds = device_data['device-mode']['prefix-based']
         for i, each_ned in enumerate(neds):
-            if i == 0 and cmd_lst[1] == 'netsim':
-                new_cmd_lst = cmd_lst[:2] + [
+            ned_count = str(neds[each_ned].get('count', 0))
+            device_prefix = neds[each_ned].get('prefix', None)
+            if device_prefix is None:
+                self.logger.error('expecting device prefix under following ned: {}'.format(each_ned))
+                self._exit
+
+            new_cmd_lst = cmd_lst[:2] + [
                     'create-network',
-                    '{}/{}'.format(ned_path, each_ned), 
-                    str(neds[each_ned]['count']),
-                    neds[each_ned]['prefix']
+                    '{}/{}'.format(nso_package_path, each_ned), 
+                    ned_count,
+                    device_prefix
                 ]
+            if i == 0 and cmd_lst[1] == 'netsim':
                 result = self._create_network(new_cmd_lst)
-                start_device_lst += self.__get_device_names_not_alive(result)
-                device_lst += self.__get_device_names(result)
             else:
-                new_cmd_lst = cmd_lst[:2] + [
-                    'add-to-network',
-                    '{}/{}'.format(ned_path, each_ned), 
-                    str(neds[each_ned]['count']),
-                    neds[each_ned]['prefix']
-                ]
+                new_cmd_lst[2] = 'add-to-network'
                 result = self._add_to_network(new_cmd_lst)
-                start_device_lst += self.__get_device_names_not_alive(result)
-                device_lst += self.__get_device_names(result)
+
+            start_device_lst += self.__get_device_names_not_alive(result)
+            device_lst += self.__get_device_names(result)
+
         # starting devices
-        start = device_data['start']
-        if start:
+        start_devices = device_data.get('start-devices', False)
+        load_day0_config = device_data.get('load-day0-config', False)
+        add_to_nso = device_data.get('add-to-nso', False)
+        if not start_devices and not load_day0_config:
+            self._exit
+
+        if start_devices:
             self.logger.info("about to start all devices")
             new_cmd_lst = cmd_lst[:2] + ['start']
             self._start(new_cmd_lst, start_device_lst)
+        self.logger.info("devices are running")
+
+        # auth-group
+        add_authgroup_to_nso = device_data.get('add-authgroup-to-nso', False)
+        if add_authgroup_to_nso:
+            authgroup = device_data.get('authgroup', None)
+            if authgroup is None:
+                self.logger.error('expecting auth-group data of type (local/system/custom)')
+                self._exit
+
+            self.logger.info('configuring authgroup')
+            authgroup_type = authgroup.get('type', 'system')
+            self._config_authgroup(authgroup_type, authgroup)
 
         # loading devices to ncs
-        self._load_devices_to_ncs(device_data, cmd_lst, device_lst)
+        if add_to_nso:
+            self._load_devices_to_ncs(device_data, cmd_lst, device_lst)
 
         # pre-config is True
-        self._load_per_config(device_data, device_lst)
+        if load_day0_config:
+            self._load_per_config(device_data, device_lst)
+
+    def _config_authgroup(self, type, authgroup):
+        authgroup_config = None
+        if type == 'local':
+            authgroup_config = '''
+<devices xmlns="http://tail-f.com/ns/ncs">
+    <authgroups>
+        <group>
+            <name>default</name>
+            <default-map>
+                <remote-name>admin</remote-name>
+                <remote-password>admin</remote-password>
+            </default-map>
+        </group>
+    </authgroups>
+</devices>
+'''
+        elif type == 'system':
+            authgroup_config = '''
+<devices xmlns="http://tail-f.com/ns/ncs">
+    <authgroups>
+        <group>
+            <name>default</name>
+            <default-map>
+                <remote-name>admin</remote-name>
+                <remote-password>admin</remote-password>
+            </default-map>
+            <umap>
+                <local-user>admin</local-user>
+                <remote-name>admin</remote-name>
+                <remote-password>admin</remote-password>
+            </umap>
+            <umap>
+                <local-user>ncsadmin</local-user>
+                <remote-name>ncsadmin</remote-name>
+                <remote-password>admin</remote-password>
+            </umap>
+            <umap>
+                <local-user>oper</local-user>
+                <remote-name>oper</remote-name>
+                <remote-password>admin</remote-password>
+            </umap>
+            <umap>
+                <local-user>system</local-user>
+                <remote-name>admin</remote-name>
+                <remote-password>admin</remote-password>
+            </umap>
+        </group>
+    </authgroups>
+</devices>
+'''
+        elif type == 'custom':
+            authgroup_path = authgroup.get('path', None)
+            if authgroup_path is None:
+                self.logger.error('expecting authgroup file path')
+                self._exit
+        else:
+            self.logger.error('invalid options, expecting authgroup.!')
+            self._exit
+
+        if authgroup_config:
+            self._dump_xml('{}/authgroup.xml'.format(self.current_path), authgroup_config)
+            authgroup_path = 'authgroup.xml'
+        if not self._is_file(authgroup_path):
+            self.logger.error('invalid authgroup file')
+            self._exit
+
+        new_cmd_lst = ['ncs_load', '-l', '-m', authgroup_path]
+        try:
+            self._run_command(new_cmd_lst)
+        except ValueError as e:
+            self.logger.error(e)
+            self._exit
 
     def _load_devices_to_ncs(self, device_data, cmd_lst, device_lst):
-        ncs_load = device_data['ncs_load']
-        if ncs_load:
-            # auth-group
-            authgroup = device_data.get('authgroup', {})
-            if authgroup:
-                self.logger.info('configuring authgroup')
-                authgroup_path = authgroup.get('path', '')
-                authgroup_files = authgroup.get('config', '')
-                for each_file in authgroup_files:
-                    each_file_path = '{}/{}'.format(authgroup_path, each_file)
-                    new_cmd_lst = ['ncs_load', '-l', '-m', each_file_path]
-                    try:
-                        self._run_command(new_cmd_lst)
-                    except ValueError as e:
-                        self.logger.error(e)
-                        self._exit
-
-            # ned compile and reload
-            ned_compile = device_data.get('ned-compile', None)
-            if ned_compile:
-                self.logger.info('compiling the neds')
-                try:
-                    mode = list(device_data['mode'].keys())[0]
-                    neds = device_data['mode'][mode].keys()
-                    for each_ned in neds:
-                        ned_path = '{}/{}'.format(device_data['ned-path'], each_ned)
-                        cmd = "make clean all | cd {}".format(ned_path)
-                        self._run_bash_commands(cmd)
-                    self.logger.info("about to run package reload force")
-                    cmd = "echo 'packages reload' | ncs_cli -u admin -C"
+        # ned compile and reload
+        compile_neds = device_data.get('compile-neds', False)
+        if compile_neds:
+            self.logger.info('compiling the neds')
+            try:
+                mode = list(device_data['device-mode'].keys())[0]
+                neds = device_data['device-mode'][mode].keys()
+                for each_ned in neds:
+                    ned_path = '{}/{}'.format(device_data['ned-path'], each_ned)
+                    cmd = "make clean all | cd {}".format(ned_path)
                     self._run_bash_commands(cmd)
-                except ValueError as e:
-                    self.logger.error('failed at ned_compiling')
-                    self.logger.error(e)
-                except IndexError as e:
-                    self.logger.error('failed to fetch the mode')
-                    self.logger.error(e)
+                self.logger.info("about to run package reload force")
+                cmd = "echo 'packages reload force' | ncs_cli -u admin -C"
+                self._run_bash_commands(cmd)
+            except ValueError as e:
+                self.logger.error('failed at compile neds')
+                self.logger.error(e)
+            except IndexError as e:
+                self.logger.error('failed to fetch the device mode')
+                self.logger.error(e)
 
-            # ncs_load
-            self.logger.info("about to add devices to ncs")
-            new_cmd_lst = cmd_lst[:2] + ['ncs-xml-init'] + device_lst
-            result = self._ncs_xml_init(new_cmd_lst, print_output=False)
-            self._dump_xml('{}/devices.xml'.format(self.current_path), result)
-            new_cmd_lst = ['ncs_load', '-l', '-m', 'devices.xml']
+        # ncs_load
+        self.logger.info("about to add devices to ncs")
+        new_cmd_lst = cmd_lst[:2] + ['ncs-xml-init'] + device_lst
+        result = self._ncs_xml_init(new_cmd_lst, print_output=False)
+        self._dump_xml('{}/devices.xml'.format(self.current_path), result)
+        new_cmd_lst = ['ncs_load', '-l', '-m', 'devices.xml']
+        try:
+            self._run_command(new_cmd_lst)
+        except ValueError as e:
+            self.logger.error(e)
+            self._exit
+
+    def _load_per_config(self, device_data, device_lst):
+        # devices sync-from
+        for each_device in device_lst:
+            self.logger.info("about to sync-from device {}".format(each_device))
+            cmd = "echo 'devices device {} sync-from' | ncs_cli -u admin -C".format(each_device)
+            self._run_bash_commands(cmd)
+
+        # apply the config
+        config_path = device_data.get('config-path')
+        if not self._is_folder(config_path):
+            self.logger.error('invalid configuration folder path given')
+            self._exit
+
+        for each_file in device_data['config-files']:
+            self.logger.info('applying config {}'.format(each_file))
+            file_path = '{}/{}'.format(config_path, each_file)
+
+            if not self._is_file(file_path):
+                self.logger.error('invalid configuration file path given')
+                self.logger.error(file_path)
+                self._exit
+
+            new_cmd_lst = ['ncs_load', '-l', '-m', file_path]
+
             try:
                 self._run_command(new_cmd_lst)
             except ValueError as e:
+                self.logger.error('invalid configuration data..!, please correct')
+                self.logger.error('you run the same command again.')
                 self.logger.error(e)
                 self._exit
-
-    def _load_per_config(self, device_data, device_lst):
-        pre_config = device_data.get('pre-config', None)
-        if pre_config:
-            # devices sync-from
-            for each_device in device_lst:
-                self.logger.info("about to sync-from device {}".format(each_device))
-                cmd = "echo 'devices device {} sync-from' | ncs_cli -u admin -C".format(each_device)
-                self._run_bash_commands(cmd)
-
-            # apply the config
-            config_path = device_data.get('config-path')
-            for each_file in device_data['config']:
-                self.logger.info('applying config {}'.format(each_file))
-                file_path = '{}/{}'.format(config_path, each_file)
-                new_cmd_lst = ['ncs_load', '-l', '-m', file_path]
-                try:
-                    self._run_command(new_cmd_lst)
-                except ValueError as e:
-                    self.logger.error(e)
-                    self._exit
 
     def _create_network(self, cmd_lst):
         output = self.run_ncs_netsim__command(cmd_lst)
@@ -556,51 +664,76 @@ class NetsimWrapper(Netsim):
             self._exit
 
     def _create_device_from(self, cmd_lst):
+        device_data = self._loading_from(cmd_lst)
         device_lst = []
         start_device_lst = []
-        device_data = self._loading_from(cmd_lst)
 
-        if 'name-based' not in device_data['mode']:
-            self.logger.error('today we support only name-based')
+        if 'device-mode' not in device_data:
+            self.logger.error('given template is invalid..!')
+            self.logger.error('either template belongs to older version')
+            self.logger.error('create a new template and update accordingly')
+            self._exit
+
+        if 'name-based' not in device_data['device-mode']:
+            self.logger.error('create-device-from support only name-based')
             self.logger.info('for prefix-based use `netsim-wrapper create-network-from`')
+            self._exit
 
         # creating devices
-        ned_path = device_data['ned-path']
-        neds = device_data['mode']['name-based']
+        nso_package_path = device_data.get('nso-packages-path', None)
+        if not self._is_folder(nso_package_path):
+            self.logger.error('given nso-package-path is not valid.')
+            self._exit
+
+        neds = device_data['device-mode']['name-based']
         for i, each_ned in enumerate(neds):
             for j, device_name in enumerate(neds[each_ned]):
+                new_cmd_lst = cmd_lst[:2] + [
+                    'add-device',
+                    '{}/{}'.format(nso_package_path, each_ned), 
+                    device_name
+                ]
                 if i == 0 and j == 0 and cmd_lst[1] == 'netsim':
-                    new_cmd_lst = cmd_lst[:2] + [
-                        'create-device',
-                        '{}/{}'.format(ned_path, each_ned), 
-                        device_name
-                    ]
+                    new_cmd_lst[2] = 'create-device'
                     self._create_device(new_cmd_lst)
-                    device_lst.append(device_name)
                     start_device_lst.append(device_name)
                 else:
-                    new_cmd_lst = cmd_lst[:2] + [
-                        'add-device',
-                        '{}/{}'.format(ned_path, each_ned), 
-                        device_name
-                    ]
                     if self._add_device(new_cmd_lst) != False:
                         start_device_lst.append(device_name)
-                    device_lst.append(device_name)
+                device_lst.append(device_name)
 
         # starting devices
-        start = device_data['start']
-        if start and len(start_device_lst):
+        start_devices = device_data.get('start-devices', False)
+        load_day0_config = device_data.get('load-day0-config', False)
+        add_to_nso = device_data.get('add-to-nso', False)
+        if not start_devices and not load_day0_config:
+            self._exit
+
+        if start_devices and len(start_device_lst):
             self.logger.info("about to start devices")
             new_cmd_lst = cmd_lst[:2] + ['start']
             self._start(new_cmd_lst, start_device_lst)
         self.logger.info("devices are running")
 
+        # auth-group
+        add_authgroup_to_nso = device_data.get('add-authgroup-to-nso', False)
+        if add_authgroup_to_nso:
+            authgroup = device_data.get('authgroup', None)
+            if authgroup is None:
+                self.logger.error('expecting auth-group data of type (local/system/custom)')
+                self._exit
+
+            self.logger.info('configuring authgroup')
+            authgroup_type = authgroup.get('type', 'system')
+            self._config_authgroup(authgroup_type, authgroup)
+
         # loading devices to ncs
-        self._load_devices_to_ncs(device_data, cmd_lst, device_lst)
+        if add_to_nso:
+            self._load_devices_to_ncs(device_data, cmd_lst, device_lst)
 
         # pre-config is True
-        self._load_per_config(device_data,device_lst)
+        if load_day0_config:
+            self._load_per_config(device_data,device_lst)
 
     def _create_device(self, cmd_lst):
         result = self.run_ncs_netsim__command(cmd_lst)
@@ -695,6 +828,7 @@ class NetsimWrapper(Netsim):
                 elif result.group(2) == 'OK':
                     self.logger.info('device {} already started.'.format(result.group(1)))
         return devices_lst
+
     def __remove_device_from_netsim(self, path, device, device_mapper):
         path = os.path.abspath(path.replace(self.__netsim_path.split('/')[-1], ''))
         if device_mapper['created_by'] == 'add-device':
