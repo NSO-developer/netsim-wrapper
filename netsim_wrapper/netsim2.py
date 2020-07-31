@@ -498,9 +498,10 @@ class NetsimWrapper(Netsim):
             authgroup_type = authgroup.get('type', 'system')
             self._config_authgroup(authgroup_type, authgroup)
 
-        # loading devices to ncs
+        # loading devices to ncs and sync
         if add_to_nso:
             self._load_devices_to_ncs(device_data, cmd_lst, device_lst)
+            self._sync_from(device_lst)
 
         # pre-config is True
         if load_day0_config:
@@ -604,13 +605,14 @@ class NetsimWrapper(Netsim):
             self.logger.error(e)
             self._exit
 
-    def _load_per_config(self, device_data, device_lst):
+    def _sync_from(self, device_lst):
         # devices sync-from
         for each_device in device_lst:
             self.logger.info("about to sync-from device {}".format(each_device))
             cmd = "echo 'devices device {} sync-from' | ncs_cli -u admin -C".format(each_device)
             self._run_bash_commands(cmd)
 
+    def _load_per_config(self, device_data, device_lst):
         # apply the config
         config_path = device_data.get('config-path')
         if not self._is_folder(config_path):
@@ -717,9 +719,10 @@ class NetsimWrapper(Netsim):
             authgroup_type = authgroup.get('type', 'system')
             self._config_authgroup(authgroup_type, authgroup)
 
-        # loading devices to ncs
+        # loading devices to ncs and sync
         if add_to_nso:
             self._load_devices_to_ncs(device_data, cmd_lst, device_lst)
+            self._sync_from(device_lst)
 
         # pre-config is True
         if load_day0_config:
