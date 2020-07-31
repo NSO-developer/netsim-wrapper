@@ -330,7 +330,7 @@ class Netsim(Utils):
 class NetsimWrapper(Netsim):
     name = 'netsim-wrapper'
     options = []
-    version = '3.1.0'
+    version = '3.1.1'
 
     _instance = None
     _netsim_wrapper_help = None
@@ -359,7 +359,7 @@ class NetsimWrapper(Netsim):
         'create-network-from',  'create-device', 'create-device-template', 
         'create-device-from', 'add-to-network', 'add-device', 
         'delete-devices', 'delete-network', 'update-ip', 'update-port',
-        'start', 'ncs-xml-init']
+        'start', 'stop', 'ncs-xml-init']
         self.options = self._help + self._version + \
             self._netsim_wrapper_commands + self.netsim_options
 
@@ -754,6 +754,8 @@ class NetsimWrapper(Netsim):
                 self.logger.error("device {} not exist".format(each))
                 self._exit
             __netsim_wrapper_device_mapper[each] = __netsim_device_mapper[each]
+            new_cmd_lst = cmd_lst[:2] + ['stop']
+            self._stop(new_cmd_lst, [each])
             self.__remove_device_from_netsim(self.__netsim_path, each, __netsim_device_mapper[each])
             del __netsim_device_mapper[each]
 
@@ -783,6 +785,22 @@ class NetsimWrapper(Netsim):
             result = self.run_ncs_netsim__command(
                 cmd_lst[:-1] + ['is-alive'], print_output=False)
             device_lst = self.__get_device_names_not_alive(result)
+            for each in device_lst:
+                self.run_ncs_netsim__command(cmd_lst + [each])
+
+    def _stop(self, cmd_lst, device_lst=[]):
+        stop_index = self.get_index(cmd_lst, 'stop')
+        if len(cmd_lst) > stop_index+1:
+            # device name given by user..!
+            self.run_ncs_netsim__command(cmd_lst)
+            return
+        if len(device_lst):
+            for each in device_lst:
+                self.run_ncs_netsim__command(cmd_lst + [each])
+        else:
+            result = self.run_ncs_netsim__command(
+                cmd_lst[:-1] + ['is-alive'], print_output=False)
+            device_lst = self.__get_device_names_alive(result)
             for each in device_lst:
                 self.run_ncs_netsim__command(cmd_lst + [each])
 
@@ -820,6 +838,19 @@ class NetsimWrapper(Netsim):
                     devices_lst.append(result.group(1))
                 elif result.group(2) == 'OK':
                     self.logger.info('device {} already started.'.format(result.group(1)))
+        return devices_lst
+
+    def __get_device_names_alive(self, data):
+        devices_lst = []
+        device_name_pattern = re.compile(r'DEVICE\s+(\S+)\s+(.*)')
+        data = data.split('\n')
+        for each_line in data:
+            result = device_name_pattern.match(each_line)
+            if result:
+                if result.group(2) == 'FAIL' or result.group(2) == 'CREATED':
+                    self.logger.info('device {} already stopped.'.format(result.group(1)))
+                elif result.group(2) == 'OK':
+                    devices_lst.append(result.group(1))
         return devices_lst
 
     def __remove_device_from_netsim(self, path, device, device_mapper):
@@ -899,7 +930,6 @@ class NetsimWrapper(Netsim):
                 try:
                     result = self.run_ncs_netsim__command(cmd_lst, throw_err=False)
                 except ValueError as e:
-                    print(e.args)
                     if 'already exists' in str(e):
                         self.logger.info('device {} already exist.!'.format(cmd_lst[4]))
                     return False
