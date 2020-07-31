@@ -330,7 +330,7 @@ class Netsim(Utils):
 class NetsimWrapper(Netsim):
     name = 'netsim-wrapper'
     options = []
-    version = '3.0.2'
+    version = '3.1.0'
 
     _instance = None
     _netsim_wrapper_help = None

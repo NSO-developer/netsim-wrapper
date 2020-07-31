@@ -1,7 +1,7 @@
 # Netsim Wrapper
 
 [![License: Apache 2.0](https://img.shields.io/badge/License-Apache2-yellow.svg)](https://opensource.org/licenses/Apache-2.0)
-[![Version: 3.0.2](https://img.shields.io/badge/Version-3.0.2-parrotgreen.svg)](https://github.com/NSO-developer/netsim-wrapper)
+[![Version: 3.1.0](https://img.shields.io/badge/Version-3.1.0-parrotgreen.svg)](https://github.com/NSO-developer/netsim-wrapper)
 [![Downloads](https://pepy.tech/badge/netsim-wrapper)](https://pepy.tech/project/netsim-wrapper)
 [![Downloads](https://pepy.tech/badge/netsim-wrapper/week)](https://pepy.tech/project/netsim-wrapper/week)
 
@@ -42,7 +42,8 @@ netsim-wrapper, An open space to automate the ncs-netsim.
 
 The best way to get netsim-wrapper is with setuptools or pip. If you already have setuptools, you can install as usual:
 
-`python -m pip install netsim-wrapper`
+`python -m pip install netsim-wrapper`  
+`pip install netsim-wrapper`
 
 Otherwise download it from PyPi, extract it and run the `setup.py` script
 
@@ -54,7 +55,7 @@ If you're Interested in the source, you can always pull from the github repo:
 
 ## Features
 
-### Delete a device(s) from topology
+#### Delete a device(s) from topology
 
 existing device list
 
@@ -195,13 +196,14 @@ add-authgroup-to-nso:
   info: configuring authgroup
 
 device-mode:
-  prefix-based:
-    ned-name:
+  - prefix-based: ncs-netsim create-network/add-to-network
+    ned-name: ned name
       options:
         count: number of devices
         prefix: prefix text for device names
-  name-based:
-    ned-name:
+
+  - name-based: ncs-netsim create-device/add-device
+    ned-name: ned name
       options: device names
 
 load-day0-config:
