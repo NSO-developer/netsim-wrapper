@@ -1,0 +1,20 @@
+nso-packages-path: /Users/kkotari/cisco/nso-development/du/nso-local-lab/nso-run-5.2.1.2/packages
+compile-neds: false
+start-devices: true
+add-to-nso: false
+add-authgroup-to-nso: false
+authgroup:
+  type: custom
+  path: <authgroup-file-path>
+device-mode:
+  name-based:
+    cisco-ios-cli-6.56:
+    - device-ios-1
+    - device-ios-2
+    - device-ios-3
+    - device-ios-4
+load-day0-config: false
+config-path: <path>
+config-files:
+- <filename0>
+- <filename1>
