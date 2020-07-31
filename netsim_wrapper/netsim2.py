@@ -579,8 +579,8 @@ class NetsimWrapper(Netsim):
                 mode = list(device_data['device-mode'].keys())[0]
                 neds = device_data['device-mode'][mode].keys()
                 for each_ned in neds:
-                    ned_path = '{}/{}'.format(device_data['ned-path'], each_ned)
-                    cmd = "make clean all | cd {}".format(ned_path)
+                    ned_path = '{}/{}/src'.format(device_data['nso-packages-path'], each_ned)
+                    cmd = "cd {}; make clean all;".format(ned_path)
                     self._run_bash_commands(cmd)
                 self.logger.info("about to run package reload force")
                 cmd = "echo 'packages reload force' | ncs_cli -u admin -C"
