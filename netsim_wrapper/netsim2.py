@@ -330,7 +330,7 @@ class Netsim(Utils):
 class NetsimWrapper(Netsim):
     name = 'netsim-wrapper'
     options = []
-    version = '3.1.1'
+    version = '3.1.2'
 
     _instance = None
     _netsim_wrapper_help = None
@@ -481,6 +481,7 @@ class NetsimWrapper(Netsim):
             self._exit
 
         if start_devices:
+            self._compile_neds(device_data)
             self.logger.info("about to start all devices")
             new_cmd_lst = cmd_lst[:2] + ['start']
             self._start(new_cmd_lst, start_device_lst)
@@ -571,7 +572,7 @@ class NetsimWrapper(Netsim):
             self.logger.error(e)
             self._exit
 
-    def _load_devices_to_ncs(self, device_data, cmd_lst, device_lst):
+    def _compile_neds(self, device_data):
         # ned compile and reload
         compile_neds = device_data.get('compile-neds', False)
         if compile_neds:
@@ -593,6 +594,7 @@ class NetsimWrapper(Netsim):
                 self.logger.error('failed to fetch the device mode')
                 self.logger.error(e)
 
+    def _load_devices_to_ncs(self, device_data, cmd_lst, device_lst):
         # ncs_load
         self.logger.info("about to add devices to ncs")
         new_cmd_lst = cmd_lst[:2] + ['ncs-xml-init'] + device_lst
@@ -702,6 +704,7 @@ class NetsimWrapper(Netsim):
             self._exit
 
         if start_devices and len(start_device_lst):
+            self._compile_neds(device_data)
             self.logger.info("about to start devices")
             new_cmd_lst = cmd_lst[:2] + ['start']
             self._start(new_cmd_lst, start_device_lst)
