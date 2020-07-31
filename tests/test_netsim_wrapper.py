@@ -1,0 +1,17 @@
+# help
+# create-network-template
+#   yaml
+#   json
+# create-network-from
+#   yaml
+#   json
+# create-device-template
+#   yaml
+#   json
+# create-device-from
+#   yaml
+#   json
+# add-to-network
+# add-device
+# delete-devices
+# --version

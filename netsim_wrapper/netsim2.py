@@ -381,7 +381,7 @@ class NetsimWrapper(Netsim):
                   create-device <NcsPackage> <DeviceName>           |'''],
             ['add-device <NcsPackage> <DeviceName>\s+\|', '''add-device <NcsPackage> <DeviceName>  |
                   delete-devices <DeviceNames>           |'''],
-            ['get-port devname \[ipc | netconf | cli | snmp\]\s*$', '''get-port devname [ipc | netconf | cli | snmp] |
+            ['get-port devname \[ipc.*', '''get-port devname [ipc | netconf | cli | snmp] |
                   -v | --version            |
                   -h | --help'''],
             ['ncs-netsim ', 'netsim-wrapper ']
@@ -458,13 +458,12 @@ class NetsimWrapper(Netsim):
             if device_prefix is None:
                 self.logger.error('expecting device prefix under following ned: {}'.format(each_ned))
                 self._exit
+            ned_path = '{}/{}'.format(nso_package_path, each_ned)
+            if not self._is_folder(ned_path):
+                self.logger.error('please check the ned path {} for ned {}'.format(nso_package_path, each_ned))
+                self._exit
 
-            new_cmd_lst = cmd_lst[:2] + [
-                    'create-network',
-                    '{}/{}'.format(nso_package_path, each_ned), 
-                    ned_count,
-                    device_prefix
-                ]
+            new_cmd_lst = cmd_lst[:2] + ['create-network', ned_path, ned_count, device_prefix]
             if i == 0 and cmd_lst[1] == 'netsim':
                 result = self._create_network(new_cmd_lst)
             else:
