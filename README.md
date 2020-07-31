@@ -1,7 +1,7 @@
 # Netsim Wrapper
 
 [![License: Apache 2.0](https://img.shields.io/badge/License-Apache2-yellow.svg)](https://opensource.org/licenses/Apache-2.0)
-[![Version: 3.1.0](https://img.shields.io/badge/Version-3.1.0-parrotgreen.svg)](https://github.com/NSO-developer/netsim-wrapper)
+[![Version: 3.1.1](https://img.shields.io/badge/Version-3.1.1-parrotgreen.svg)](https://github.com/NSO-developer/netsim-wrapper)
 [![Downloads](https://pepy.tech/badge/netsim-wrapper)](https://pepy.tech/project/netsim-wrapper)
 [![Downloads](https://pepy.tech/badge/netsim-wrapper/week)](https://pepy.tech/project/netsim-wrapper/week)
 
